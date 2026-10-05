@@ -19,8 +19,30 @@ src/engine/     ölçüm mantığı — kopyalanabilir, dilden bağımsız
   pipeline.ts    deney başına ölçüm
 
 src/content/   yalnızca TR/EN metin
+  experiments.ts  sekiz deney: soru, yöntem, beklenti
+  library.ts      bilgi bankası: 7 katman, kavramlar, birincil kaynaklar
+  i18n.ts         arayüz metinleri
 src/App.tsx     arayüz — mantık çağırmaz, yalnızca gösterir
+src/KnowledgeBank.tsx  bilgi bankası görünümü — ölçüm çağırmaz
 ```
+
+## Ölçüm ile açıklama ayrımı
+
+`src/engine` ölçer. `src/content/library.ts` açıklar. Bu iki yüzey bilinçli olarak
+ayrıdır ve arayüzde ayrı görünür:
+
+- **Laboratuvar** cevap anahtarına karşı hesaplar; her sayı okuyucunun önünde
+  yeniden üretilebilir.
+- **Bilgi bankası** yalnızca metin ve kaynak gösterir. `library.ts` motora hiç
+  bağımlı değildir, bu yüzden ölçümü temsil edemez. Bir kavramın metninde sayı
+  bulunması, okuyucunun yeniden hesaplayamayacağı bir iddiadır; `tests/library.test.ts`
+  bunu reddeder.
+
+Her kavram bir deneye bağlanır ve arayüzdeki "Bunu ölç" düğmesi o deneyi
+laboratuvarda açar. Yani açıklama, inanmakla değil çalıştırarak denetlenir.
+
+Kaynaklar birincildir (makale veya kurumsal belge) ve `https://` ile başlar.
+Bir katmanın kaynağı yoksa o katman kabul edilmez.
 
 ## Sözleşme
 

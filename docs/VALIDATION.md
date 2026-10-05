@@ -59,12 +59,44 @@ Hysteresis started from `like(strong)`, which allocates zeros rather than clonin
 edges were discarded and the output was identically zero. Fixed with an explicit `clone`, and the
 regression is guarded by a test asserting a non-empty edge map.
 
+## Knowledge bank sources, checked rather than recalled
+
+Every source in `src/content/library.ts` was resolved before it was written, because a
+reference that cannot be opened is indistinguishable from a fabricated one. Two candidates
+were **rejected during this work** and replaced:
+
+| Rejected | Why | Replaced by |
+|---|---|---|
+| A Sobel & Feldman and a Horn & Schunck DOI | Both returned 404 at doi.org; the titles were written from memory | Ojala 2002 and the correct `10.1016/0004-3702(81)90024-2` |
+| A Hough 1962 record pointing at a CERN ID | The CERN record is behind a bot check, and the DOI that resolved (`10.1364/AO.28.003479`) is a 1989 paper by different authors | Zhang 2000 camera calibration |
+
+`10.1007/BF00130422` was initially taken for Horn & Schunck; Crossref shows it is a muscle
+physiology paper. The lesson matches the rest of this file: the identity of a source has to be
+measured, not remembered.
+
+The thirteen sources that remain are all publisher or standards addresses, and every one of
+them was confirmed to resolve:
+
+| Layer | Sources |
+|---|---|
+| signal | SPIE Handbook of Optical Systems, appendix on sampling |
+| filtering | Tomasi & Manduchi 1998 (bilateral) |
+| edges | Canny 1986, Marr & Hildreth 1980 |
+| regions | Otsu 1979, Parašić et al. 2012 (connected components) |
+| geometry | Zhang 2000 (calibration), Hartley & Zisserman 2004 |
+| learning | LeCun et al. 1998, Krizhevsky et al. 2012, He et al. 2016 |
+| motion | Horn & Schunck 1981, Ojala et al. 2002 (texture) |
+
+Hough 1962, Nyquist 1928 and Sobel & Feldman 1968 are the classic citations for this field and
+none of them is reachable through a DOI that resolves. They are therefore **not cited**; the
+geometry layer rests on sources that can be opened.
+
 ## Test inventory
 
 | Suite | Count | What it covers |
 |---|---:|---|
-| `npm test` (vitest) | 48 | determinism, no-overlap key, horizon contrast, Sobel kernels, 2D blur, Canny thresholds, component labelling, Hough peak, IoU and matching, flow recovery, CNN reproducibility and loss decrease, engine prose derived without re-measuring, every experiment runs, answer key is exactly 1.0 |
-| `npm run test:ui` browser | 12 | all eight experiments render, answer key measures 1.0000, every experiment reports, learned path reports both sides and a difference, seed change re-measures, synthetic scope in both languages, language parity, CPU path selectable and measured, depth correlations reported, motion shift recovered, parent links, no console errors |
+| `npm test` (vitest) | 66 | determinism, no-overlap key, horizon contrast, Sobel kernels, 2D blur, Canny thresholds, component labelling, Hough peak, IoU and matching, flow recovery, CNN reproducibility and loss decrease, engine prose derived without re-measuring, every experiment runs, answer key is exactly 1.0, plus 18 knowledge-bank invariants: layer order and boundaries, source binding and reachability, TR/EN parity, concept-to-experiment cross-links, and the ban on numeric claims in reference prose |
+| `npm run test:ui` browser | 16 | all eight experiments render, answer key measures 1.0000, every experiment reports, learned path reports both sides and a difference, seed change re-measures, synthetic scope in both languages, language parity, CPU path selectable and measured, depth correlations reported, motion shift recovered, parent links, no console errors, plus the knowledge bank: seven sourced layers each stating its boundary, a primary source opening in a new tab, the explicit statement that its own numbers are not measurements, a concept cross-link that returns to the measuring experiment, and language switching inside the bank |
 | `npm run test:ui` webgpu | 5 | adapter reachable or loud failure, real compute shader, engine selection reported, CPU/GPU parity under 1e-3, delegated operators named |
 | `scripts/verify-dist.mjs` | — | 7 required files, release manifest fields, canonical address, hashed bundles, security headers, no-store on the manifest, published schema, and a scan proving the artifact contains no external calls |
 
@@ -72,7 +104,7 @@ regression is guarded by a test asserting a non-empty edge map.
 
 ```
 npm run lint      clean
-npm run build     dist verified, 272 kB js / 8 kB css
-npm test          48 passed
-npm run test:ui   17 passed
+npm run build     dist verified, 300 kB js / 10 kB css
+npm test          66 passed
+npm run test:ui   21 passed (16 browser + 5 webgpu)
 ```

@@ -8,6 +8,9 @@ import { probeEngines, toReport } from './engine/selectEngine.ts';
 import type { EngineFacts } from './engine/selectEngine.ts';
 import { cpuEngine } from './engine/cpuEngine.ts';
 import type { Tensor, VisionEngine } from './engine/types.ts';
+import { KnowledgeBank } from './KnowledgeBank.tsx';
+
+type View = 'laboratory' | 'knowledge';
 
 const DEFAULT_SEED = 42;
 
@@ -61,6 +64,7 @@ function Metric({ label, value, testId }: { label: string; value: string; testId
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('tr');
+  const [view, setView] = useState<View>('laboratory');
   const [experimentId, setExperimentId] = useState<ExperimentId>('ground-truth');
   const [seed, setSeed] = useState(DEFAULT_SEED);
   const [objects, setObjects] = useState(4);
@@ -98,6 +102,14 @@ export default function App() {
 
   // Translated on render, so switching language is free.
   const report = useMemo(() => (facts ? toReport(facts, lang) : null), [facts, lang]);
+
+  // A concept in the knowledge bank points at the experiment that exercises it.
+  // Selecting it returns the reader to the laboratory and re-runs that
+  // experiment, so the prose can be checked by measuring rather than believed.
+  const measure = useCallback((target: ExperimentId) => {
+    setExperimentId(target);
+    setView('laboratory');
+  }, []);
 
   const run = useCallback(async () => {
     setBusy(true);
@@ -140,23 +152,43 @@ export default function App() {
             <span>{t('tagline', lang)}</span>
           </span>
         </div>
-        <div className="lang-switch" role="group" aria-label={lang === 'tr' ? 'Dil seçimi' : 'Language'}>
-          {(['tr', 'en'] as const).map((l) => (
-            <button
-              key={l}
-              type="button"
-              className={lang === l ? 'chip chip-active' : 'chip'}
-              onClick={() => setLang(l)}
-              aria-pressed={lang === l}
-              data-testid={`lang-${l}`}
-              lang={l}
-            >
-              {l.toUpperCase()}
-            </button>
-          ))}
+        <div className="topbar-side">
+          <nav className="view-switch" aria-label={t('knowledge', lang)}>
+            {(['laboratory', 'knowledge'] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={view === v ? 'chip chip-active' : 'chip'}
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                data-testid={`view-${v}`}
+              >
+                {v === 'laboratory' ? t('laboratory', lang) : t('knowledge', lang)}
+              </button>
+            ))}
+          </nav>
+          <div className="lang-switch" role="group" aria-label={lang === 'tr' ? 'Dil seçimi' : 'Language'}>
+            {(['tr', 'en'] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                className={lang === l ? 'chip chip-active' : 'chip'}
+                onClick={() => setLang(l)}
+                aria-pressed={lang === l}
+                data-testid={`lang-${l}`}
+                lang={l}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
+      {view === 'knowledge' ? (
+        <KnowledgeBank lang={lang} onMeasure={measure} />
+      ) : (
+        <>
       <nav className="experiments" aria-label={t('experiments', lang)}>
         {EXPERIMENTS.map((e) => (
           <button
@@ -448,6 +480,8 @@ export default function App() {
           )}
         </section>
       </main>
+        </>
+      )}
 
       <footer className="footer">
         <p>{t('footerNote', lang)}</p>
@@ -456,12 +490,12 @@ export default function App() {
             aserdargun.com
           </a>
           {' · '}
-          <a href="https://eng.aserdargun.com/" target="_blank" rel="noreferrer">
-            ENG
+          <a href="https://llm.aserdargun.com/" target="_blank" rel="noreferrer">
+            LLM
           </a>
           {' · '}
-          <a href="https://hex.aserdargun.com/" target="_blank" rel="noreferrer">
-            HEX
+          <a href="https://eng.aserdargun.com/" target="_blank" rel="noreferrer">
+            ENG
           </a>
         </p>
       </footer>

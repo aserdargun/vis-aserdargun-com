@@ -111,8 +111,50 @@ test('links back to the parent learning system', async ({ page }) => {
   await page.goto('/');
   const footer = page.locator('footer');
   await expect(footer.getByRole('link', { name: 'aserdargun.com' })).toHaveAttribute('href', 'https://aserdargun.com/tr/');
+  await expect(footer.getByRole('link', { name: 'LLM' })).toHaveAttribute('href', 'https://llm.aserdargun.com/');
   await expect(footer.getByRole('link', { name: 'ENG' })).toHaveAttribute('href', 'https://eng.aserdargun.com/');
-  await expect(footer.getByRole('link', { name: 'HEX' })).toHaveAttribute('href', 'https://hex.aserdargun.com/');
+});
+
+test('renders the knowledge bank as seven sourced layers', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-knowledge').click();
+  const bank = page.getByTestId('knowledge-bank');
+  await expect(bank).toBeVisible();
+  // Every layer names what it is not for, so no layer implies it does everything.
+  await expect(bank.getByTestId('kb-layer-signal')).toBeVisible();
+  await expect(bank.getByTestId('kb-layer-motion')).toBeVisible();
+  await expect(bank.locator('.kb-boundary')).toHaveCount(7);
+  // Sources are external, primary and opened in a new tab.
+  const source = bank.getByTestId('kb-source-canny-1986');
+  await expect(source).toHaveAttribute('href', 'https://doi.org/10.1109/TPAMI.1986.4767851');
+  await expect(source).toHaveAttribute('target', '_blank');
+});
+
+test('the knowledge bank states that its own numbers are not measurements', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-knowledge').click();
+  await expect(page.getByTestId('knowledge-bank')).toContainText('ölçüm değildir');
+  // No measurement is rendered on the reference surface at all.
+  await expect(page.getByTestId('metrics')).toHaveCount(0);
+});
+
+test('a concept cross-links to the experiment that measures it', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-knowledge').click();
+  await page.getByTestId('kb-measure-hysteresis').click();
+  // Back in the laboratory, on the experiment the concept points at.
+  await expect(page.getByTestId('exp-edges')).toHaveClass(/exp-active/);
+  await expect(page.getByTestId('metrics')).toContainText('IoU', { timeout: 30000 });
+});
+
+test('the knowledge bank switches language in both directions', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-knowledge').click();
+  await expect(page.getByTestId('kb-concept-hysteresis')).toContainText('Histerez');
+  await page.getByTestId('lang-en').click();
+  await expect(page.getByTestId('kb-concept-hysteresis')).toContainText('Hysteresis');
+  await page.getByTestId('lang-tr').click();
+  await expect(page.getByTestId('kb-concept-hysteresis')).toContainText('Histerez');
 });
 
 test('shows no console error during a full pass', async ({ page }) => {

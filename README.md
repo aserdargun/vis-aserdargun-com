@@ -5,9 +5,28 @@
 
 VIS, tarayıcı içinde çalışan deterministik bir bilgisayarlı görü laboratuvarıdır. Her sahne prosedürel olarak üretilir ve **piksel başına doğru cevap haritasıyla birlikte** çizilir. Bu yüzden raporlanan her sayı bir ölçümdür, bir tahmin değil.
 
-VIS, [ENG — Open Humanoid Engineering](https://eng.aserdargun.com/) dördüncü yılındaki *otonom dijital insanoidin algı katmanı* olarak tasarlandı. Sorulan soru COCO mAP'ı değil: **fizik, ışık, örtüşme ve gecikmeyle karşılaşınca bu algı hayatta kalır mı?**
+VIS, [aserdargun.com](https://aserdargun.com/) üzerinde **çalıştırma kulvarında**, [LLM Runtime & Serving Atlas](https://llm.aserdargun.com/) paralelinde duran bilgisayarlı görü bilgi bankasıdır. İki yüzeyi vardır ve kasıtlı olarak ayrıdır:
+
+- **Bilgi bankası** — yedi katman, her biri birincil kaynağa bağlı; açıklar, ölçmez.
+- **Laboratuvar** — cevap anahtarına karşı hesaplar; ölçer, açıklamaz.
+
+Her kavram, onu gerçekten çalıştıran bir deneye bağlıdır: bilgi bankasındaki *Bunu ölç* düğmesi o deneyi laboratuvarda açar. Sorulan soru COCO mAP'ı değil: **fizik, ışık, örtüşme ve gecikmeyle karşılaşınca bu algı hayatta kalır mı?**
 
 **Bütün veriler sentetiktir.** Gerçek kamera, gerçek sahne, önceden eğitilmiş model, hesap gönderimi, hesap kaydı veya backend yoktur.
+
+## Bilgi bankası · Knowledge bank
+
+| # | Katman | Sorumluluk |
+|---|---|---|
+| 01 | Sinyal | Görüntünün sayı üretim biçimi: örnekleme, nicemleme, gürültü. |
+| 02 | Süzme | Konvolüsyon, Gauss bulanıklığı, ayrılabilirlik. |
+| 03 | Kenar | Gradyan, sönümleme, çift eşik, histerez. |
+| 04 | Bölge | Eşikleme, morfoloji, bağlı bileşen etiketleme. |
+| 05 | Geometri | Hough birikimi ve yapısal çizgi adayları. |
+| 06 | Öğrenme | Konvolüsyonlu ağ ve genelleme bedeli. |
+| 07 | Hareket | Seyrek optik akış ve dokuya bağımlılık. |
+
+Her katman *ne için değil* sınırını da taşır ve en az bir hakemli kaynağa bağlıdır. Bilgi bankasında hiçbir sayı ölçüm değildir; ölçümler yalnızca laboratuvarda hesaplanır.
 
 ## Deneyler
 

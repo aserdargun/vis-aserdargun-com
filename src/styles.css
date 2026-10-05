@@ -505,3 +505,127 @@ input[type='checkbox'] {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Knowledge bank
+   Prose and sources only. Nothing here styles a measurement, because nothing
+   here is one.
+   --------------------------------------------------------------------------- */
+.topbar-side {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.view-switch {
+  display: flex;
+  gap: 0.35rem;
+}
+.kb {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  max-width: 78rem;
+  margin: 0 auto;
+}
+.kb-lede {
+  color: var(--muted, #9aa39a);
+  max-width: 62ch;
+}
+.kb-counts code,
+.kb-counts b {
+  color: var(--accent, #c8ff36);
+}
+.kb-layer-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.kb-layer-index {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted, #9aa39a);
+}
+.kb-layer-meta {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1rem;
+}
+.kb-layer-meta dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, #9aa39a);
+}
+.kb-layer-meta dd {
+  margin: 0.15rem 0 0;
+  max-width: 68ch;
+}
+.kb-boundary {
+  border-left: 2px solid #b4531f;
+  padding-left: 0.75rem;
+}
+.kb-concepts ul {
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.kb-concept {
+  border: 1px solid #2b332a;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  background: #141a13;
+}
+.kb-concept h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.98rem;
+}
+.kb-concept p {
+  margin: 0 0 0.6rem;
+  color: #cfd6cb;
+  max-width: 72ch;
+}
+.kb-measure {
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #46543f;
+  background: #1d261a;
+  color: #d7e6c6;
+  cursor: pointer;
+}
+.kb-measure:hover {
+  border-color: #7d9670;
+}
+.kb-layer-sources {
+  margin-top: 1rem;
+}
+.kb-sources {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.kb-sources li {
+  display: grid;
+  gap: 0.2rem;
+  border-left: 2px solid #3c4a36;
+  padding-left: 0.7rem;
+}
+.kb-sources a {
+  color: var(--accent, #c8ff36);
+}
+.kb-source-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted, #9aa39a);
+}
+.kb-source-supports {
+  font-size: 0.85rem;
+  color: #b9c2b5;
+  max-width: 72ch;
+}

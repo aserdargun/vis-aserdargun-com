@@ -53,9 +53,23 @@ export const UI = {
     tr: 'WebGPU bağdaştırıcısı yok — CPU yolunda ölçülüyor',
     en: 'No WebGPU adapter — measuring on the CPU path',
   } as Text,
+  knowledge: { tr: 'Bilgi bankası', en: 'Knowledge bank' } as Text,
+  laboratory: { tr: 'Laboratuvar', en: 'Laboratory' } as Text,
+  layers: { tr: 'Katmanlar', en: 'Layers' } as Text,
+  sources: { tr: 'Kaynaklar', en: 'Sources' } as Text,
+  responsibility: { tr: 'Sorumluluk', en: 'Responsibility' } as Text,
+  notFor: { tr: 'Ne için değil', en: 'Not for' } as Text,
+  buildsOn: { tr: 'Üzerine kurulur', en: 'Builds on' } as Text,
+  concepts: { tr: 'Kavramlar', en: 'Concepts' } as Text,
+  measureIt: { tr: 'Bunu ölç', en: 'Measure this' } as Text,
+  sourceNote: {
+    tr: 'Buradaki her açıklama birincil kaynağa bağlıdır ve deneylerden ayrıdır. Buradaki hiçbir sayı ölçüm değildir; ölçümler yalnızca laboratuvarda, cevap anahtarına karşı hesaplanır.',
+    en: 'Every explanation here is bound to a primary source and is kept apart from the experiments. No number here is a measurement; measurements are computed in the laboratory only, against the answer key.',
+  } as Text,
+  experimentLink: { tr: 'Deney', en: 'Experiment' } as Text,
   footerNote: {
-    tr: 'VIS, ENG dördüncü yılındaki otonom dijital insanoidin algı katmanı olarak tasarlandı. Eğitim, doğrulama ve değişmez tohum.',
-    en: 'VIS is designed as the perception layer of the autonomous digital humanoid in year four of ENG. Educational, verified and deterministic.',
+    tr: 'VIS, bilgisayarlı görünün çalıştırma kulvarında bir bilgi bankasıdır: yedi katman, birincil kaynaklar ve her kavramı ölçebilen deneyler. Laboratuvar ölçer, bilgi bankası açıklar. Eğitim ve değişmez tohum.',
+    en: 'VIS is a knowledge bank on the computer-vision runtime lane: seven layers, primary sources, and an experiment that measures every concept. The laboratory measures; the knowledge bank explains. Educational and deterministic.',
   } as Text,
 } as const;
 
