@@ -75,8 +75,16 @@ if (!(asset.headers.get('cache-control') ?? '').includes('immutable')) {
   fail('hashed assets must be immutable.');
 }
 
-const swa = await get(`${base.replace(/\/$/, '')}/staticwebapp.config.json`);
-if (swa.status !== 200) fail(`staticwebapp.config.json returned ${swa.status}`);
+// Static Web Apps consumes public/staticwebapp.config.json as its own routing
+// input and does not serve it. A 404 here is the expected, healthy result; a
+// 200 would mean the config is also being published as content.
+const swaConfig = await get(`${base.replace(/\/$/, '')}/staticwebapp.config.json`);
+if (swaConfig.status !== 404) {
+  fail(`staticwebapp.config.json should be consumed, not served (got ${swaConfig.status})`);
+}
+
+const schema = await get(`${base.replace(/\/$/, '')}/schemas/experiment-run.schema.json`);
+if (schema.status !== 200) fail(`published schema returned ${schema.status}`);
 
 const robots = await get(`${base.replace(/\/$/, '')}/robots.txt`);
 if (robots.status === 200) {
