@@ -95,16 +95,16 @@ geometry layer rests on sources that can be opened.
 
 | Suite | Count | What it covers |
 |---|---:|---|
-| `npm test` (vitest) | 66 | determinism, no-overlap key, horizon contrast, Sobel kernels, 2D blur, Canny thresholds, component labelling, Hough peak, IoU and matching, flow recovery, CNN reproducibility and loss decrease, engine prose derived without re-measuring, every experiment runs, answer key is exactly 1.0, plus 18 knowledge-bank invariants: layer order and boundaries, source binding and reachability, TR/EN parity, concept-to-experiment cross-links, and the ban on numeric claims in reference prose |
+| `npm test` (vitest) | 67 | determinism, no-overlap key, horizon contrast, Sobel kernels, 2D blur, Canny thresholds, component labelling, Hough peak, IoU and matching, flow recovery, CNN reproducibility and loss decrease, engine prose derived without re-measuring, every experiment runs, answer key is exactly 1.0, the family favicon (frame and lime accent, declared links, raster dimensions, and the raster pixels themselves: white corners, lime disc, dark ground, no alpha), plus 18 knowledge-bank invariants: layer order and boundaries, source binding and reachability, TR/EN parity, concept-to-experiment cross-links, and the ban on numeric claims in reference prose |
 | `npm run test:ui` browser | 16 | all eight experiments render, answer key measures 1.0000, every experiment reports, learned path reports both sides and a difference, seed change re-measures, synthetic scope in both languages, language parity, CPU path selectable and measured, depth correlations reported, motion shift recovered, parent links, no console errors, plus the knowledge bank: seven sourced layers each stating its boundary, a primary source opening in a new tab, the explicit statement that its own numbers are not measurements, a concept cross-link that returns to the measuring experiment, and language switching inside the bank |
 | `npm run test:ui` webgpu | 5 | adapter reachable or loud failure, real compute shader, engine selection reported, CPU/GPU parity under 1e-3, delegated operators named |
-| `scripts/verify-dist.mjs` | — | 7 required files, release manifest fields, canonical address, hashed bundles, security headers, no-store on the manifest, published schema, and a scan proving the artifact contains no external calls |
+| `scripts/verify-dist.mjs` | — | 9 required files, release manifest fields, canonical address, hashed bundles, security headers, no-store on the manifest, published schema, and a scan proving the artifact contains no external calls |
 
 ## Result
 
 ```
 npm run lint      clean
 npm run build     dist verified, 300 kB js / 10 kB css
-npm test          66 passed
+npm test          67 passed
 npm run test:ui   21 passed (16 browser + 5 webgpu)
 ```
