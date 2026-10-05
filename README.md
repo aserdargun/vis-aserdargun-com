@@ -8,6 +8,7 @@ VIS, tarayıcı içinde çalışan deterministik bir bilgisayarlı görü labora
 VIS, [aserdargun.com](https://aserdargun.com/) üzerinde **temel şeridinde**, [GPU](https://gpu.aserdargun.com/) ve [LLM](https://llm.aserdargun.com/) ile yan yana duran bilgisayarlı görü bilgi bankasıdır; hepsini **00 Architect** şeridindeki [AIA](https://aia.aserdargun.com/) türetir. İki yüzeyi vardır ve kasıtlı olarak ayrıdır:
 
 - **Bilgi bankası** — yedi katman, her biri birincil kaynağa bağlı; açıklar, ölçmez.
+- **Tekrar** — kartlar bilgi bankasından türetilir, SM-2 ile zamanlanır, yalnızca bu tarayıcıda saklanır. Puanı okur verir.
 - **Laboratuvar** — cevap anahtarına karşı hesaplar; ölçer, açıklamaz.
 
 Her kavram, onu gerçekten çalıştıran bir deneye bağlıdır: bilgi bankasındaki *Bunu ölç* düğmesi o deneyi laboratuvarda açar. Sorulan soru COCO mAP'ı değil: **fizik, ışık, örtüşme ve gecikmeyle karşılaşınca bu algı hayatta kalır mı?**

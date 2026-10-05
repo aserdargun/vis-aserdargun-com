@@ -9,8 +9,9 @@ import type { EngineFacts } from './engine/selectEngine.ts';
 import { cpuEngine } from './engine/cpuEngine.ts';
 import type { Tensor, VisionEngine } from './engine/types.ts';
 import { KnowledgeBank } from './KnowledgeBank.tsx';
+import { LearnView } from './LearnView.tsx';
 
-type View = 'laboratory' | 'knowledge';
+type View = 'laboratory' | 'knowledge' | 'learn';
 
 const DEFAULT_SEED = 42;
 
@@ -154,7 +155,7 @@ export default function App() {
         </div>
         <div className="topbar-side">
           <nav className="view-switch" aria-label={t('knowledge', lang)}>
-            {(['laboratory', 'knowledge'] as const).map((v) => (
+            {(['laboratory', 'knowledge', 'learn'] as const).map((v) => (
               <button
                 key={v}
                 type="button"
@@ -163,7 +164,7 @@ export default function App() {
                 aria-pressed={view === v}
                 data-testid={`view-${v}`}
               >
-                {v === 'laboratory' ? t('laboratory', lang) : t('knowledge', lang)}
+                {v === 'laboratory' ? t('laboratory', lang) : v === 'knowledge' ? t('knowledge', lang) : t('learn', lang)}
               </button>
             ))}
           </nav>
@@ -187,6 +188,8 @@ export default function App() {
 
       {view === 'knowledge' ? (
         <KnowledgeBank lang={lang} onMeasure={measure} />
+      ) : view === 'learn' ? (
+        <LearnView lang={lang} onMeasure={measure} />
       ) : (
         <>
       <nav className="experiments" aria-label={t('experiments', lang)}>

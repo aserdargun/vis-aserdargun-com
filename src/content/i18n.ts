@@ -67,6 +67,15 @@ export const UI = {
     en: 'Every explanation here is bound to a primary source and is kept apart from the experiments. No number here is a measurement; measurements are computed in the laboratory only, against the answer key.',
   } as Text,
   experimentLink: { tr: 'Deney', en: 'Experiment' } as Text,
+  learn: { tr: 'Tekrar', en: 'Review' } as Text,
+  learnNote: {
+    tr: 'Kartlar bilgi bankasındaki kavramlardan türetilir ve yalnızca bu tarayıcıda saklanır. Doğru ya da yanlış hükmü burada verirsiniz; uygulama puan vermez. Karttan deneye geçtiğinizde ölçüm yine cevap anahtarına karşı hesaplanır.',
+    en: 'Cards are derived from the knowledge bank and stay in this browser only. You are the one who judges them right or wrong; the application scores nothing. Following a card into an experiment puts the measurement back against the answer key.',
+  } as Text,
+  reveal: { tr: 'Yanıtı göster', en: 'Show the answer' } as Text,
+  learnDone: { tr: 'Şu an tekrar zamanı olan kart yok. Yeni kartlar yarın açılır.', en: 'No card is due right now. New cards open tomorrow.' } as Text,
+  learnLocal: { tr: 'İlerleme bu tarayıcıda tutulur; hesap gönderimi, backend veya çevrimiçi kayıt yoktur.', en: 'Progress stays in this browser; there is no upload, backend or online account.' } as Text,
+  learnReset: { tr: 'İlerlemeyi sıfırla', en: 'Reset progress' } as Text,
   footerNote: {
     tr: 'VIS, bilgisayarlı görünün temel şeridinde bir bilgi bankasıdır: yedi katman, birincil kaynaklar ve her kavramı ölçebilen deneyler. Laboratuvar ölçer, bilgi bankası açıklar. Eğitim ve değişmez tohum.',
     en: 'VIS is a knowledge bank in the computer-vision foundation lane: seven layers, primary sources, and an experiment that measures every concept. The laboratory measures; the knowledge bank explains. Educational and deterministic.',

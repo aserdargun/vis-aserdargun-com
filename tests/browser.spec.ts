@@ -171,3 +171,50 @@ test('shows no console error during a full pass', async ({ page }) => {
   }
   expect(errors).toEqual([]);
 });
+
+test('the review deck is derived from the knowledge bank and graded by the reader', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-learn').click();
+  const card = page.getByTestId('learn-card');
+  await expect(card).toBeVisible();
+  // The answer is hidden until the reader asks, because the reader is the judge.
+  await expect(page.getByTestId('learn-answer')).toHaveCount(0);
+  await page.getByTestId('learn-reveal').click();
+  await expect(page.getByTestId('learn-answer')).toBeVisible();
+  await expect(page.getByTestId('learn-grades')).toBeVisible();
+  await expect(page.getByTestId('learn-counts')).toContainText('0');
+});
+
+test('grading a card records progress that survives a reload', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-learn').click();
+  await page.getByTestId('learn-reveal').click();
+  await page.getByTestId('learn-grade-5').click();
+  await expect(page.getByTestId('learn-counts')).not.toContainText('\u00a00 /');
+  const stored = await page.evaluate(() => localStorage.getItem('vis.learn.v1.progress'));
+  expect(stored).toBeTruthy();
+  const state = JSON.parse(stored!);
+  expect(Object.keys(state.cards).length).toBe(1);
+  expect(state.streak.current).toBe(1);
+  // A fresh load must read the stored progress back, not start over.
+  await page.reload();
+  await page.getByTestId('view-learn').click();
+  await expect(page.getByTestId('learn-counts')).toContainText('1');
+});
+
+test('a card cross-links to the experiment that measures its concept', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-learn').click();
+  await page.getByTestId('learn-reveal').click();
+  await page.getByTestId('learn-measure').click();
+  await expect(page.getByTestId('knowledge-bank')).toHaveCount(0);
+  await expect(page.getByTestId('metrics')).toContainText('IoU', { timeout: 30000 });
+});
+
+test('the review surface stays bilingual', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('view-learn').click();
+  await expect(page.getByTestId('learn-view')).toContainText('Kartlar bilgi bankasındaki');
+  await page.getByTestId('lang-en').click();
+  await expect(page.getByTestId('learn-view')).toContainText('derived from the knowledge bank');
+});

@@ -21,10 +21,32 @@ src/engine/     ölçüm mantığı — kopyalanabilir, dilden bağımsız
 src/content/   yalnızca TR/EN metin
   experiments.ts  sekiz deney: soru, yöntem, beklenti
   library.ts      bilgi bankası: 7 katman, kavramlar, birincil kaynaklar
+  flashcards.ts   SM-2 zamanlayıcı + kavramlardan türetilen kartlar
   i18n.ts         arayüz metinleri
 src/App.tsx     arayüz — mantık çağırmaz, yalnızca gösterir
 src/KnowledgeBank.tsx  bilgi bankası görünümü — ölçüm çağırmaz
+src/LearnView.tsx      tekrar görünümü — puan vermez, okur puanlar
+src/learning/progress.ts  localStorage ilerleme; okuma anında yeniden doğrulanır
 ```
+
+## Tekrar katmanı
+
+Kartlar elle yazılmaz, `CONCEPTS`'ten **türetilir**: her kavram bir tanım kartı,
+beş kavram ayrıca sınır kartı üretir. Bu yüzden deste bilgi bankasından geride
+kalamaz ve kart hiçbir zaman kaynağından ayrı bir iddiaya dönüşemez.
+
+Zamanlama SM-2'dir (Wozniak, 1990): önceki durumun ve takvim gününün saf bir
+fonksiyonu, yani aynı geçmiş her zaman aynı programı üretir. Başarısızlık
+kartı ertesi güne alır ve sapma sayılır; başarıda aralık 1, 6, sonra kolaylık
+çarpanıyla büyür ve çarpan zeminde tutulur.
+
+İki sınır bilinçlidir:
+
+- **Kartlar puansız.** Uygulama doğru ya da yanlış demez; okur `0-5` arası
+  not verir. Yine ölçüm sözleşmesi bozulmaz.
+- **localStorage güvenilmeyen girdidir.** Sürümler arasında ve elle
+  düzenlenebildiği için her alan okuma anında yeniden doğrulanır; bozuk kayıt
+  atılır, hata fırlatılmaz. Hesap yok, gönderim yok, backend yok.
 
 ## Ölçüm ile açıklama ayrımı
 

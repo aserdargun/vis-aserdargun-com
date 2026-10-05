@@ -519,6 +519,12 @@ export const CONCEPTS: readonly Concept[] = [
   },
 ];
 
+export const conceptById = (id: string): Concept => {
+  const found = CONCEPTS.find((c) => c.id === id);
+  if (!found) throw new Error(`Unknown concept: ${id}`);
+  return found;
+};
+
 export const layerById = (id: LayerId): Layer => {
   const found = LAYERS.find((l) => l.id === id);
   if (!found) throw new Error(`Unknown layer: ${id}`);
