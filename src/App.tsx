@@ -4,9 +4,10 @@ import type { ExperimentId } from './content/experiments.ts';
 import { t, type Lang } from './content/i18n.ts';
 import { ensureWeights, runExperiment } from './engine/pipeline.ts';
 import type { ExperimentResult } from './engine/pipeline.ts';
-import { selectEngine } from './engine/selectEngine.ts';
+import { probeEngines, toReport } from './engine/selectEngine.ts';
+import type { EngineFacts } from './engine/selectEngine.ts';
 import { cpuEngine } from './engine/cpuEngine.ts';
-import type { EngineReport, Tensor, VisionEngine } from './engine/types.ts';
+import type { Tensor, VisionEngine } from './engine/types.ts';
 
 const DEFAULT_SEED = 42;
 
@@ -68,7 +69,7 @@ export default function App() {
   const [depthWeight, setDepthWeight] = useState(0.5);
   const [preferGpu, setPreferGpu] = useState(true);
   const [engine, setEngine] = useState<VisionEngine>(cpuEngine);
-  const [report, setReport] = useState<EngineReport | null>(null);
+  const [facts, setFacts] = useState<EngineFacts | null>(null);
   const [parity, setParity] = useState<{ op: string; maxDiff: number }[]>([]);
   const [delegated, setDelegated] = useState<string[]>([]);
   const [result, setResult] = useState<ExperimentResult | null>(null);
@@ -77,19 +78,26 @@ export default function App() {
   const experiment = experimentById(experimentId);
   const outputRef = useRef<HTMLDivElement>(null);
 
+  // Engine facts are measurements, so they are computed once per GPU choice.
+  // Depending on `lang` here would re-run the whole parity comparison — six GPU
+  // round-trips — every time the reader switches language, which is measurement
+  // work a language change never justifies. The prose is derived separately.
   useEffect(() => {
     let cancelled = false;
-    void selectEngine(lang, preferGpu).then((selection) => {
+    void probeEngines(preferGpu).then((facts) => {
       if (cancelled) return;
-      setEngine(selection.engine);
-      setReport(selection.report);
-      setParity(selection.parity);
-      setDelegated(selection.delegated);
+      setFacts(facts);
+      setEngine(facts.engine);
+      setParity(facts.parity);
+      setDelegated(facts.delegated);
     });
     return () => {
       cancelled = true;
     };
-  }, [lang, preferGpu]);
+  }, [preferGpu]);
+
+  // Translated on render, so switching language is free.
+  const report = useMemo(() => (facts ? toReport(facts, lang) : null), [facts, lang]);
 
   const run = useCallback(async () => {
     setBusy(true);
