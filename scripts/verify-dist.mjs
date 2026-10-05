@@ -16,6 +16,8 @@ const required = [
   'index.html',
   'release.json',
   'favicon.svg',
+  'favicon-32.png',
+  'apple-touch-icon.png',
   'staticwebapp.config.json',
   'robots.txt',
   'sitemap.xml',
