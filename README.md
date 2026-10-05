@@ -5,7 +5,7 @@
 
 VIS, tarayıcı içinde çalışan deterministik bir bilgisayarlı görü laboratuvarıdır. Her sahne prosedürel olarak üretilir ve **piksel başına doğru cevap haritasıyla birlikte** çizilir. Bu yüzden raporlanan her sayı bir ölçümdür, bir tahmin değil.
 
-VIS, [aserdargun.com](https://aserdargun.com/) üzerinde **çalıştırma kulvarında**, [LLM Runtime & Serving Atlas](https://llm.aserdargun.com/) paralelinde duran bilgisayarlı görü bilgi bankasıdır. İki yüzeyi vardır ve kasıtlı olarak ayrıdır:
+VIS, [aserdargun.com](https://aserdargun.com/) üzerinde **temel şeridinde**, [GPU](https://gpu.aserdargun.com/) ve [LLM](https://llm.aserdargun.com/) ile yan yana duran bilgisayarlı görü bilgi bankasıdır; hepsini **00 Architect** şeridindeki [AIA](https://aia.aserdargun.com/) türetir. İki yüzeyi vardır ve kasıtlı olarak ayrıdır:
 
 - **Bilgi bankası** — yedi katman, her biri birincil kaynağa bağlı; açıklar, ölçmez.
 - **Laboratuvar** — cevap anahtarına karşı hesaplar; ölçer, açıklamaz.

@@ -68,8 +68,8 @@ export const UI = {
   } as Text,
   experimentLink: { tr: 'Deney', en: 'Experiment' } as Text,
   footerNote: {
-    tr: 'VIS, bilgisayarlı görünün çalıştırma kulvarında bir bilgi bankasıdır: yedi katman, birincil kaynaklar ve her kavramı ölçebilen deneyler. Laboratuvar ölçer, bilgi bankası açıklar. Eğitim ve değişmez tohum.',
-    en: 'VIS is a knowledge bank on the computer-vision runtime lane: seven layers, primary sources, and an experiment that measures every concept. The laboratory measures; the knowledge bank explains. Educational and deterministic.',
+    tr: 'VIS, bilgisayarlı görünün temel şeridinde bir bilgi bankasıdır: yedi katman, birincil kaynaklar ve her kavramı ölçebilen deneyler. Laboratuvar ölçer, bilgi bankası açıklar. Eğitim ve değişmez tohum.',
+    en: 'VIS is a knowledge bank in the computer-vision foundation lane: seven layers, primary sources, and an experiment that measures every concept. The laboratory measures; the knowledge bank explains. Educational and deterministic.',
   } as Text,
 } as const;
 
