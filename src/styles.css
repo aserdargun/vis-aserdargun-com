@@ -324,6 +324,39 @@ input[type='checkbox'] {
   color: var(--muted);
 }
 
+.parity {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.parity ul {
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.parity code {
+  font-family: var(--mono);
+  color: var(--blue);
+}
+
+.parity b {
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+.parity-note {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
 /* ---------- stage ---------- */
 
 .panes {

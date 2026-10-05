@@ -31,7 +31,12 @@ export function gaussian(src: Tensor, sigma: number): Tensor {
   for (let y = 0; y < src.h; y += 1) {
     for (let x = 0; x < src.w; x += 1) {
       let acc = 0;
-      for (let k = 0; k < size; k += 1) acc += tmp.data[y * tmp.w + Math.min(tmp.w - 1, Math.max(0, x + k - radius))]! * kernel[k]!;
+      // Second pass runs along y, clamping rows at the edges. Reading a fixed
+      // row here would blur horizontally twice and never touch y at all, which
+      // is how the two engines ended up computing different filters.
+      for (let k = 0; k < size; k += 1) {
+        acc += atClamped(tmp, x, y + k - radius) * kernel[k]!;
+      }
       out.data[y * src.w + x] = acc;
     }
   }
@@ -57,8 +62,8 @@ export function convolve(src: Tensor, kernel: Float32Array, kw: number, kh: numb
   return out;
 }
 
-const SOBEL_X = new Float32Array([-1, 0, 1, -2, 0, 2, -1, 0, 1]);
-const SOBEL_Y = new Float32Array([-1, -2, -1, 0, 0, 0, 1, 2, 1]);
+export const SOBEL_X = new Float32Array([-1, 0, 1, -2, 0, 2, -1, 0, 1]);
+export const SOBEL_Y = new Float32Array([-1, -2, -1, 0, 0, 0, 1, 2, 1]);
 
 /** Sobel gradient magnitude, normalised so the response lands in [0,1]. */
 export function sobel(src: Tensor): Tensor {

@@ -50,10 +50,13 @@ test('changing the seed changes the measurement', async ({ page }) => {
   await page.getByTestId('exp-regions').click();
   await expect(page.getByTestId('extra')).toContainText('otsuLevel', { timeout: 20000 });
   const before = await page.getByTestId('extra').textContent();
-  await page.getByTestId('new-scene').click();
+  // Advance the seed slider: a click on the button cycles it, and the effect
+  // must re-run with the new scene rather than keep the previous numbers.
+  await page.getByTestId('seed').fill('77');
   await expect
     .poll(async () => page.getByTestId('extra').textContent(), { timeout: 20000 })
     .not.toBe(before);
+  await expect(page.getByTestId('extra')).toContainText('otsuLevel');
 });
 
 test('declines the synthetic-data scope in both languages', async ({ page }) => {
@@ -61,7 +64,7 @@ test('declines the synthetic-data scope in both languages', async ({ page }) => 
   const notice = page.getByTestId('synthetic-notice');
   await expect(notice).toContainText('sentetik', { timeout: 20000 });
   await expect(notice).toContainText('Backend yok');
-  await page.getByRole('button', { name: 'EN' }).click();
+  await page.getByTestId('lang-en').click();
   await expect(notice).toContainText('synthetic');
   await expect(notice).toContainText('No backend');
 });
@@ -69,9 +72,9 @@ test('declines the synthetic-data scope in both languages', async ({ page }) => 
 test('switches the whole laboratory between Turkish and English', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('question')).toContainText('?', { timeout: 20000 });
-  await page.getByRole('button', { name: 'EN' }).click();
+  await page.getByTestId('lang-en').click();
   await expect(page.getByTestId('exp-edges')).toContainText('Edge, or noise');
-  await page.getByRole('button', { name: 'TR' }).click();
+  await page.getByTestId('lang-tr').click();
   await expect(page.getByTestId('exp-edges')).toContainText('Kenar mı');
 });
 

@@ -1,5 +1,6 @@
 import { GPU_CAPABLE, runCpuOp } from './cpuEngine.ts';
-import { SHADER_CONVOLVE, SHADER_SOBEL_MAGNITUDE, SHADER_THRESHOLD } from './gpuShaders.ts';
+import { SOBEL_X, SOBEL_Y } from './ops.ts';
+import { SHADER_CONVOLVE, SHADER_MORPHOLOGY, SHADER_SOBEL_MAGNITUDE, SHADER_THRESHOLD } from './gpuShaders.ts';
 import type { EngineId, Tensor, VisionEngine } from './types.ts';
 
 /**
@@ -109,11 +110,11 @@ export class WebGpuEngine implements VisionEngine {
     return GPU_CAPABLE.has(op);
   }
 
-  private pipeline(key: string, code: string): GPUComputePipeline {
+  private pipeline(key: string, code: string, entryPoint = 'main'): GPUComputePipeline {
     const cached = this.pipelines.get(key);
     if (cached) return cached;
     const module = this.device.createShaderModule({ code });
-    const pipeline = this.device.createComputePipeline({ layout: 'auto', compute: { module, entryPoint: 'main' } });
+    const pipeline = this.device.createComputePipeline({ layout: 'auto', compute: { module, entryPoint } });
     this.pipelines.set(key, pipeline);
     return pipeline;
   }
@@ -193,10 +194,11 @@ export class WebGpuEngine implements VisionEngine {
         return { w: input.w, h: input.h, data };
       }
       case 'sobel': {
-        // The two directional passes are 1D convolutions; only the magnitude
-        // reduction runs as its own kernel.
-        const gxv = await this.convolve1d(input, new Float32Array([-1, 0, 1, -2, 0, 2, -1, 0, 1]), 1, 0);
-        const gyv = await this.convolve1d(input, new Float32Array([-1, -2, -1, 0, 0, 0, 1, 2, 1]), 0, 1);
+        // The two directional passes are genuinely 2D 3x3 kernels, not
+        // separable 1D ones. A Sobel row is [-1,0,1] on one line and [-2,0,2]
+        // on the next, so it cannot be expressed as a single 1D pass.
+        const gxv = await this.convolveKernel(input, SOBEL_X, 3, 3, 1, 1);
+        const gyv = await this.convolveKernel(input, SOBEL_Y, 3, 3, 1, 1);
         const gx = await this.upload(gxv);
         const gy = await this.upload(gyv);
         const dst = this.storage(input.data.byteLength);
@@ -238,9 +240,61 @@ export class WebGpuEngine implements VisionEngine {
         const horizontal = await this.convolve1d(input, kernel, radius, 0);
         return this.convolve1d(horizontal, kernel, 0, radius);
       }
+      case 'dilate':
+      case 'erode': {
+        // Rank filters: a 3x3 dilation is the max over the neighbourhood, and
+        // erosion is the min. They are data-parallel, so the same kernel shape
+        // applies with the reduction swapped.
+        const radius = Math.max(1, Math.round(params.radius ?? 1));
+        const size = radius * 2 + 1;
+        const kernel = new Float32Array(size * size).fill(op === 'dilate' ? 0 : 1);
+        const src = await this.upload(input);
+        const kb = this.storage(kernel.byteLength);
+        this.device.queue.writeBuffer(kb, 0, kernel);
+        const dst = this.storage(input.data.byteLength);
+        const u = new Uint32Array(UNIFORM_WORDS);
+        u[0] = input.w;
+        u[1] = input.h;
+        u[2] = size;
+        u[3] = size;
+        u[4] = radius;
+        u[5] = radius;
+        const entry = op === 'dilate' ? 'main' : 'erodeMain';
+        const data = await this.dispatch(
+          this.pipeline(op, SHADER_MORPHOLOGY, entry),
+          [src, kb, dst],
+          u,
+          input.w,
+          input.h,
+        );
+        return { w: input.w, h: input.h, data };
+      }
       default:
         throw new Error(`WebGPU engine cannot run "${op}"`);
     }
+  }
+
+  private async convolveKernel(
+    input: Tensor,
+    kernel: Float32Array,
+    kw: number,
+    kh: number,
+    padX: number,
+    padY: number,
+  ): Promise<Tensor> {
+    const src = await this.upload(input);
+    const kb = this.storage(kernel.byteLength);
+    this.device.queue.writeBuffer(kb, 0, kernel);
+    const dst = this.storage(input.data.byteLength);
+    const u = new Uint32Array(UNIFORM_WORDS);
+    u[0] = input.w;
+    u[1] = input.h;
+    u[2] = kw;
+    u[3] = kh;
+    u[4] = padX;
+    u[5] = padY;
+    const data = await this.dispatch(this.pipeline('convolve', SHADER_CONVOLVE), [src, kb, dst], u, input.w, input.h);
+    return { w: input.w, h: input.h, data };
   }
 
   private async convolve1d(input: Tensor, flat: Float32Array, padX: number, padY: number): Promise<Tensor> {

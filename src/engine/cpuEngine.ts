@@ -54,6 +54,28 @@ export async function runCpuOp(op: string, input: Tensor, params: Record<string,
   }
 }
 
+/**
+ * Largest absolute disagreement between the two engines on one op.
+ *
+ * The GPU accumulates in f32 while this path accumulates in JS doubles, so the
+ * two are expected to differ slightly. A large divergence means one of them is
+ * wrong, and the number is reported rather than hidden.
+ */
+export async function compareEngines(
+  gpu: VisionEngine,
+  input: Tensor,
+  op: string,
+  params: Record<string, number> = {},
+): Promise<number> {
+  const cpu = await runCpuOp(op, input, params);
+  const other = await gpu.run(op, input, params);
+  let maxDiff = 0;
+  for (let i = 0; i < cpu.data.length; i += 1) {
+    maxDiff = Math.max(maxDiff, Math.abs(cpu.data[i]! - other.data[i]!));
+  }
+  return maxDiff;
+}
+
 export const cpuEngine: VisionEngine = {
   id: 'cpu',
   describe: 'CPU · Float32Array · deterministik',

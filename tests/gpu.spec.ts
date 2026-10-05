@@ -93,43 +93,34 @@ test('the interface selects the GPU engine and says so', async ({ page }) => {
 
 test('CPU and GPU agree within float tolerance', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByTestId('probe-adapter')).toHaveText('true', { timeout: 20000 });
+  // The parity table is produced by the application on a fixed probe scene, so
+  // the assertion reads a measurement the interface itself computed rather than
+  // re-deriving it in the test.
+  const table = page.getByTestId('parity');
+  await expect(table).toBeVisible({ timeout: 40000 });
 
-  // The module paths are held in variables so the assertion compares the modules
-  // the interface actually loads, without the test file importing them itself.
-  const parity = await page.evaluate(async () => {
-    const engineDir = '/src/engine/';
-    const cpu = (await import(/* @vite-ignore */ `${engineDir}cpuEngine.ts`)) as {
-      runCpuOp: (op: string, input: unknown, params?: Record<string, number>) => Promise<{ data: Float32Array }>;
-    };
-    const gpuMod = (await import(/* @vite-ignore */ `${engineDir}gpuEngine.ts`)) as {
-      WebGpuEngine: { create: () => Promise<null | { describe: string; run: (op: string, input: unknown, params?: Record<string, number>) => Promise<{ data: Float32Array }> }> };
-    };
-    const sceneMod = (await import(/* @vite-ignore */ `${engineDir}scene.ts`)) as {
-      buildScene: (o: { seed: number }) => { image: unknown };
-    };
-    const scene = sceneMod.buildScene({ seed: 42 });
-    const gpu = await gpuMod.WebGpuEngine.create();
-    if (!gpu) return { ok: false, describe: '', maxDiff: {} as Record<string, number> };
-    const out: Record<string, number> = {};
-    for (const op of ['gaussian', 'sobel', 'threshold', 'convolve']) {
-      const params: Record<string, number> = op === 'threshold' ? { level: 0.5 } : {};
-      const a = await cpu.runCpuOp(op, scene.image, params);
-      const b = await gpu.run(op, scene.image, params);
-      let maxDiff = 0;
-      for (let i = 0; i < a.data.length; i += 1) {
-        maxDiff = Math.max(maxDiff, Math.abs(a.data[i]! - b.data[i]!));
-      }
-      out[op] = maxDiff;
-    }
-    return { ok: true, describe: gpu.describe, maxDiff: out };
-  });
-
-  expect(parity.ok).toBe(true);
-  const diffs = parity.maxDiff;
-  // f32 on the GPU against f64 accumulation in JS: agreement must be close but
-  // not bit-exact. 1e-3 is a measurement tolerance, not a rounding allowance.
-  for (const [op, value] of Object.entries(diffs)) {
+  const rows = await table.locator('li').allTextContents();
+  expect(rows.length, 'no parity rows were reported').toBeGreaterThan(0);
+  for (const row of rows) {
+    const match = /([a-z]+)\s+([0-9.eE+-]+)/.exec(row);
+    expect(match, `unreadable parity row: ${row}`).not.toBeNull();
+    const op = match![1]!;
+    const value = Number(match![2]!);
+    // f32 on the GPU against f64 accumulation in JS: agreement must be close but
+    // not bit-exact. 1e-3 is a measurement tolerance, not a rounding allowance.
+    expect(Number.isFinite(value), `${op} reported a non-numeric difference`).toBe(true);
     expect(value, `${op} diverged between engines`).toBeLessThan(1e-3);
   }
+});
+
+test('delegates the sequential operators to the CPU path', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByTestId('probe-adapter')).toHaveText('true', { timeout: 20000 });
+  // Canny hysteresis and the Hough accumulation keep a sequential structure, so
+  // the GPU path cannot answer them. The interface must name them rather than
+  // imply the GPU handled everything.
+  const delegated = page.getByTestId('delegated');
+  await expect(delegated).toBeVisible({ timeout: 40000 });
+  await expect(delegated).toContainText('canny');
+  await expect(delegated).toContainText('hough');
 });

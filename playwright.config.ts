@@ -23,10 +23,14 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
   },
+  // `gpu.spec.ts` only ever runs in the webgpu project. Leaving it in the cpu
+  // project would make it assert against a browser that was launched without
+  // the WebGPU flags, where requestAdapter() is null by design.
   projects: [
     {
       name: 'cpu',
       use: { browserName: 'chromium' },
+      testMatch: /browser\.spec\.ts$/,
     },
     {
       // Real adapter or an explicit failure — never a silent skip.

@@ -1,5 +1,6 @@
-import { cpuEngine } from './cpuEngine.ts';
+import { compareEngines, cpuEngine } from './cpuEngine.ts';
 import { WebGpuEngine, probeWebGpu } from './gpuEngine.ts';
+import { buildScene } from './scene.ts';
 import type { EngineReport, Lang, Text, VisionEngine } from './types.ts';
 
 export interface EngineSelection {
@@ -7,6 +8,12 @@ export interface EngineSelection {
   readonly report: EngineReport;
   /** Ops the active engine cannot answer itself; the CPU path serves them. */
   readonly delegated: string[];
+  /**
+   * Largest disagreement between the two engines on a fixed probe scene, per op.
+   * The GPU accumulates in f32 and the CPU in doubles, so small values are
+   * expected; a large one means one of the two paths is wrong.
+   */
+  readonly parity: { op: string; maxDiff: number }[];
 }
 
 const detail = (lang: Lang, gpu: boolean, message: string): Text => ({
@@ -32,9 +39,17 @@ export async function selectEngine(lang: Lang, preferGpu: boolean): Promise<Engi
     const gpu = await WebGpuEngine.create();
     if (gpu) {
       const delegated = cpuEngine.ops.filter((op) => !gpu.has(op));
+      const probeScene = buildScene({ seed: 42 });
+      const parity: { op: string; maxDiff: number }[] = [];
+      for (const op of gpu.ops) {
+        const params: Record<string, number> = op === 'threshold' ? { level: 0.5 } : {};
+        const maxDiff = await compareEngines(gpu, probeScene.image, op, params);
+        parity.push({ op, maxDiff: Math.round(maxDiff * 1e6) / 1e6 });
+      }
       return {
         engine: gpu,
         delegated,
+        parity,
         report: {
           id: gpu.id,
           describe: gpu.describe,
@@ -56,6 +71,9 @@ export async function selectEngine(lang: Lang, preferGpu: boolean): Promise<Engi
   return {
     engine: cpuEngine,
     delegated: [],
+    // No second engine to compare against, so there is nothing to report here
+    // and the interface says the CPU path was used rather than implying a check.
+    parity: [],
     report: {
       id: cpuEngine.id,
       describe: cpuEngine.describe,

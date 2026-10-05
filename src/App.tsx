@@ -69,6 +69,8 @@ export default function App() {
   const [preferGpu, setPreferGpu] = useState(true);
   const [engine, setEngine] = useState<VisionEngine>(cpuEngine);
   const [report, setReport] = useState<EngineReport | null>(null);
+  const [parity, setParity] = useState<{ op: string; maxDiff: number }[]>([]);
+  const [delegated, setDelegated] = useState<string[]>([]);
   const [result, setResult] = useState<ExperimentResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -81,6 +83,8 @@ export default function App() {
       if (cancelled) return;
       setEngine(selection.engine);
       setReport(selection.report);
+      setParity(selection.parity);
+      setDelegated(selection.delegated);
     });
     return () => {
       cancelled = true;
@@ -128,9 +132,17 @@ export default function App() {
             <span>{t('tagline', lang)}</span>
           </span>
         </div>
-        <div className="lang-switch" role="group" aria-label={t('engine', lang)}>
+        <div className="lang-switch" role="group" aria-label={lang === 'tr' ? 'Dil seçimi' : 'Language'}>
           {(['tr', 'en'] as const).map((l) => (
-            <button key={l} type="button" className={lang === l ? 'chip chip-active' : 'chip'} onClick={() => setLang(l)}>
+            <button
+              key={l}
+              type="button"
+              className={lang === l ? 'chip chip-active' : 'chip'}
+              onClick={() => setLang(l)}
+              aria-pressed={lang === l}
+              data-testid={`lang-${l}`}
+              lang={l}
+            >
               {l.toUpperCase()}
             </button>
           ))}
@@ -287,6 +299,33 @@ export default function App() {
             </ul>
           )}
           <p className="engine-note">{report?.detail[lang] ?? ''}</p>
+
+          {parity.length > 0 && (
+            <div className="parity" data-testid="parity">
+              <h3>{lang === 'tr' ? 'CPU / GPU uyumu' : 'CPU / GPU agreement'}</h3>
+              <ul>
+                {parity.map((p) => (
+                  <li key={p.op}>
+                    <code>{p.op}</code> <b>{p.maxDiff.toExponential(2)}</b>
+                  </li>
+                ))}
+              </ul>
+              <p className="parity-note">
+                {lang === 'tr'
+                  ? 'GPU f32, CPU f64 biriktirir. Küçük fark beklenir; büyük fark bir hata işaretidir.'
+                  : 'The GPU accumulates f32, the CPU f64. A small difference is expected; a large one signals a bug.'}
+              </p>
+            </div>
+          )}
+
+          {delegated.length > 0 && (
+            <div className="parity" data-testid="delegated">
+              <h3>{lang === 'tr' ? 'CPU yolunda çalışan işlemler' : 'Operators running on the CPU path'}</h3>
+              <p className="parity-note">
+                <code>{delegated.join(', ')}</code>
+              </p>
+            </div>
+          )}
         </section>
 
         <section className="panel stage" ref={outputRef}>

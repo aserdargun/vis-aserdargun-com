@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { buildScene } from '../src/engine/scene.ts';
-import { canny, connectedComponents, gaussian, houghLines, iou, lucasKanade, matchComponents, otsu, sobel } from '../src/engine/ops.ts';
+import {
+  SOBEL_X,
+  SOBEL_Y,
+  canny,
+  connectedComponents,
+  gaussian,
+  houghLines,
+  iou,
+  lucasKanade,
+  matchComponents,
+  otsu,
+  sobel,
+} from '../src/engine/ops.ts';
 import { buildSecondFrame, ensureWeights, resetWeights, runExperiment } from '../src/engine/pipeline.ts';
 import { cpuEngine, runCpuOp } from '../src/engine/cpuEngine.ts';
 import { detectReport, maskIou, pixelAccuracy, truthComponents } from '../src/engine/metrics.ts';
@@ -98,6 +110,43 @@ describe('classical operators', () => {
     expect(level).toBeLessThan(1);
   });
 
+  // Regression: the second separable pass read a fixed row, so the blur ran
+  // along x twice and never touched y. The GPU path ran both axes correctly,
+  // so the two engines were computing different filters and diverged by ~0.16
+  // on identical input.
+  it('blurs along both axes', () => {
+    const W = 9;
+    const H = 9;
+    const impulse: { w: number; h: number; data: Float32Array } = { w: W, h: H, data: new Float32Array(W * H) };
+    impulse.data[4 * W + 4] = 1;
+    const out = gaussian(impulse, 1);
+    const rowTotal = (y: number): number => {
+      let s = 0;
+      for (let x = 0; x < W; x += 1) s += out.data[y * W + x]!;
+      return s;
+    };
+    const colTotal = (x: number): number => {
+      let s = 0;
+      for (let y = 0; y < H; y += 1) s += out.data[y * W + x]!;
+      return s;
+    };
+    // A two-dimensional blur spreads the impulse in both directions.
+    expect(rowTotal(4)).toBeGreaterThan(0.2);
+    expect(rowTotal(4) - rowTotal(3)).toBeGreaterThan(0);
+    expect(colTotal(4)).toBeCloseTo(rowTotal(4), 6);
+    for (let y = 0; y < H; y += 1) {
+      for (let x = 0; x < W; x += 1) {
+        const dx = Math.abs(x - 4);
+        const dy = Math.abs(y - 4);
+        // Symmetric about the impulse in both axes.
+        expect(out.data[y * W + x]!).toBeCloseTo(out.data[(8 - y) * W + x]!, 6);
+        expect(out.data[y * W + x]!).toBeCloseTo(out.data[y * W + (8 - x)]!, 6);
+        // A blur along x only would give the same value for every row at (x, 4).
+        if (dy > 0 && dx === 0) expect(out.data[y * W + x]!).toBeLessThan(out.data[4 * W + 4]!);
+      }
+    }
+  });
+
   it('returns a binary canny map', () => {
     const edges = canny(scene.image);
     for (const v of edges.data) expect(v === 0 || v === 1).toBe(true);
@@ -126,6 +175,52 @@ describe('classical operators', () => {
     const edges = canny(scene.image);
     const on = Array.from(edges.data).filter((v) => v >= 0.5).length;
     expect(on).toBeGreaterThan(100);
+  });
+
+  // Regression: the GPU path treated a Sobel row as if it were separable into a
+  // single 1D pass, which it is not. The two engines then computed different
+  // gradients and diverged by ~0.51 on identical input.
+  it('exposes the sobel kernels both engines share', () => {
+    expect(Array.from(SOBEL_X)).toEqual([-1, 0, 1, -2, 0, 2, -1, 0, 1]);
+    expect(Array.from(SOBEL_Y)).toEqual([-1, -2, -1, 0, 0, 0, 1, 2, 1]);
+    // The x kernel cancels a constant offset along x, the y kernel along y.
+    for (let row = 0; row < 3; row += 1) {
+      expect(SOBEL_X[row * 3]! + SOBEL_X[row * 3 + 1]! + SOBEL_X[row * 3 + 2]!).toBe(0);
+    }
+    for (let col = 0; col < 3; col += 1) {
+      expect(SOBEL_Y[col]! + SOBEL_Y[3 + col]! + SOBEL_Y[6 + col]!).toBe(0);
+    }
+    // Each kernel is separable in two dimensions: the outer product of a
+    // smoothing and a differencing vector. It is NOT a single 1D vector, which
+    // is the mistake the GPU path used to make.
+    const smooth = [1, 2, 1];
+    const diff = [-1, 0, 1];
+    for (let r = 0; r < 3; r += 1) {
+      for (let c = 0; c < 3; c += 1) {
+        expect(SOBEL_X[r * 3 + c]!).toBe(smooth[r]! * diff[c]!);
+        expect(SOBEL_Y[r * 3 + c]!).toBe(diff[r]! * smooth[c]!);
+      }
+    }
+  });
+
+  it('ignores a constant offset, proving the sobel pass is 2d', () => {
+    const W = 8;
+    const H = 8;
+    const base: { w: number; h: number; data: Float32Array } = { w: W, h: H, data: new Float32Array(W * H) };
+    for (let y = 0; y < H; y += 1) {
+      for (let x = 0; x < W; x += 1) base.data[y * W + x] = 0.1 * x;
+    }
+    const shifted: { w: number; h: number; data: Float32Array } = {
+      w: W,
+      h: H,
+      data: new Float32Array(W * H),
+    };
+    for (let i = 0; i < base.data.length; i += 1) shifted.data[i] = base.data[i]! + 0.37;
+    const a = sobel(base);
+    const b = sobel(shifted);
+    for (let i = 0; i < a.data.length; i += 1) {
+      expect(a.data[i]).toBeCloseTo(b.data[i]!, 6);
+    }
   });
 
   it('recovers the drawn borders above chance', () => {
