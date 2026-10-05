@@ -63,7 +63,7 @@ regression is guarded by a test asserting a non-empty edge map.
 
 | Suite | Count | What it covers |
 |---|---:|---|
-| `npm test` (vitest) | 40 | determinism, no-overlap key, horizon contrast, Sobel kernels, 2D blur, Canny thresholds, component labelling, Hough peak, IoU and matching, flow recovery, CNN reproducibility and loss decrease, every experiment runs, answer key is exactly 1.0 |
+| `npm test` (vitest) | 48 | determinism, no-overlap key, horizon contrast, Sobel kernels, 2D blur, Canny thresholds, component labelling, Hough peak, IoU and matching, flow recovery, CNN reproducibility and loss decrease, engine prose derived without re-measuring, every experiment runs, answer key is exactly 1.0 |
 | `npm run test:ui` browser | 12 | all eight experiments render, answer key measures 1.0000, every experiment reports, learned path reports both sides and a difference, seed change re-measures, synthetic scope in both languages, language parity, CPU path selectable and measured, depth correlations reported, motion shift recovered, parent links, no console errors |
 | `npm run test:ui` webgpu | 5 | adapter reachable or loud failure, real compute shader, engine selection reported, CPU/GPU parity under 1e-3, delegated operators named |
 | `scripts/verify-dist.mjs` | — | 7 required files, release manifest fields, canonical address, hashed bundles, security headers, no-store on the manifest, published schema, and a scan proving the artifact contains no external calls |
@@ -73,6 +73,6 @@ regression is guarded by a test asserting a non-empty edge map.
 ```
 npm run lint      clean
 npm run build     dist verified, 272 kB js / 8 kB css
-npm test          40 passed
+npm test          48 passed
 npm run test:ui   17 passed
 ```

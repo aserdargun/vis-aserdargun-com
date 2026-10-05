@@ -68,6 +68,14 @@ Bunlar regresyon testleriyle korunur, çünkü ikisi de sessizdi:
   değildir; sapma 0.51'di. Artık çekirdekler `ops.ts`'ten dışa aktarılır ve iki motor aynı
   matrisi kullanır.
 
+## Ölçüm ve metin ayrımı
+
+Motor gerçekleri (adapter, üretici, mimari, CPU/GPU paritesi) **bir kez** ölçülür ve
+`EngineFacts` olarak saklanır. Bunları anlatan metin ise render anında `describeSelection(facts, lang)`
+ile türetilir. İkisi aynı `useEffect` içinde olsaydı, TR/EN arasında geçiş yapmak altı GPU
+gidiş-dönüşünü yeniden tetiklerdi — dil değişikliğinin asla hak etmediği bir ölçüm işi.
+Ölçüm değerleri iki dilde birebir aynıdır; yalnızca açıklama metni değişir.
+
 ## Determinizm
 
 - Tüm rastgelelik `mulberry32` üzerinden tohumdan türetilir; `Math.random` hiçbir yerde yoktur.
