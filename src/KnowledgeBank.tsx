@@ -1,19 +1,20 @@
 import { CONCEPTS, LAYERS, SOURCES, conceptsInLayer, sourceById } from './content/library.ts';
 import type { LayerId } from './content/library.ts';
-import { experimentById } from './content/experiments.ts';
-import type { ExperimentId } from './content/experiments.ts';
-import { t, type Lang, type UiKey } from './content/i18n.ts';
+import { measureLink } from './content/laboratory-link.ts';
+import type { LaboratoryLayer } from './content/laboratory-link.ts';
+import { t, type Lang } from './content/i18n.ts';
 
 /**
  * The knowledge bank surface.
  *
  * It renders prose and sources. It never renders a measurement, because this
  * file has no access to an engine — a number here could not be recomputed by
- * the reader, and the whole point of the application is that numbers can be.
+ * the reader, and the point of this application is that claims can be checked.
  *
- * The cross-link into the laboratory is the part that keeps the two honest: a
- * concept is only useful here if the reader can go and watch the same idea
- * fail, succeed or become ambiguous against a synthetic answer key.
+ * The cross-link into the laboratory is the part that keeps it honest: a
+ * concept is only worth stating if the reader can go and watch the same idea
+ * fail, succeed or become ambiguous against a synthetic answer key. That
+ * measurement lives in CVL, so the link leaves this application.
  */
 
 function SourceList({ ids, lang }: { ids: readonly string[]; lang: Lang }) {
@@ -37,13 +38,7 @@ function SourceList({ ids, lang }: { ids: readonly string[]; lang: Lang }) {
   );
 }
 
-export function KnowledgeBank({
-  lang,
-  onMeasure,
-}: {
-  lang: Lang;
-  onMeasure: (experimentId: ExperimentId) => void;
-}) {
+export function KnowledgeBank({ lang }: { lang: Lang }) {
   return (
     <div className="kb" data-testid="knowledge-bank">
       <section className="panel kb-intro">
@@ -92,24 +87,21 @@ export function KnowledgeBank({
             <div className="kb-concepts">
               <h3>{t('concepts', lang)}</h3>
               <ul>
-                {concepts.map((concept) => {
-                  const experiment = experimentById(concept.experiment);
-                  return (
-                    <li className="kb-concept" key={concept.id} data-testid={`kb-concept-${concept.id}`}>
-                      <h4>{concept.term[lang]}</h4>
-                      <p>{concept.summary[lang]}</p>
-                      <button
-                        type="button"
-                        className="kb-measure"
-                        onClick={() => onMeasure(concept.experiment)}
-                        data-testid={`kb-measure-${concept.id}`}
-                      >
-                        {t('measureIt', lang)} · {t('experimentLink', lang)} {experiment.index}:{' '}
-                        {experiment.title[lang]}
-                      </button>
-                    </li>
-                  );
-                })}
+                {concepts.map((concept) => (
+                  <li className="kb-concept" key={concept.id} data-testid={`kb-concept-${concept.id}`}>
+                    <h4>{concept.term[lang]}</h4>
+                    <p>{concept.summary[lang]}</p>
+                    <a
+                      className="kb-measure"
+                      href={measureLink(concept.measures)}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid={`kb-measure-${concept.id}`}
+                    >
+                      {t('measureIt', lang)} · {t('laboratoryLink', lang)}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -124,11 +116,9 @@ export function KnowledgeBank({
   );
 }
 
-/** Every concept is reachable from at least one experiment, and vice versa. */
-export function libraryCoverage(): { experiments: ExperimentId[]; unreferenced: LayerId[] } {
-  const used = new Set(CONCEPTS.map((c) => c.experiment));
+/** Every concept names a laboratory layer, and every knowledge layer holds a concept. */
+export function libraryCoverage(): { layers: LaboratoryLayer[]; unreferenced: LayerId[] } {
+  const used = new Set(CONCEPTS.map((c) => c.measures));
   const unreferenced = LAYERS.filter((l) => conceptsInLayer(l.id).length === 0).map((l) => l.id);
-  return { experiments: [...used], unreferenced };
+  return { layers: [...used], unreferenced };
 }
-
-export type { UiKey };

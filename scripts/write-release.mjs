@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,8 +19,18 @@ function gitCommit() {
 }
 
 const commit = gitCommit();
+
+/**
+ * The release manifest states the scope this application actually has.
+ *
+ * VIS explains and cites. It has no engine, so it publishes no measurement
+ * schema and claims no default compute path: an `engineDefault` field on a
+ * surface that cannot run an operator would be a claim nothing in the build
+ * could support. The measurement contract belongs to CVL, which publishes its
+ * own schema at https://cvl.aserdargun.com/schemas/experiment-run.schema.json.
+ */
 const release = {
-  application: 'vis-vision-laboratory',
+  application: 'vis-knowledge-bank',
   code: 'VIS',
   version: pkg.version,
   commit,
@@ -31,20 +41,14 @@ const release = {
     backend: false,
     telemetry: false,
     account: false,
-    engineDefault: 'cpu',
-    engineOptional: 'webgpu',
+    measurementEngine: false,
+    explains: true,
+    cites: true,
+    laboratory: 'https://cvl.aserdargun.com/',
   },
 };
 
 mkdirSync(dist, { recursive: true });
 writeFileSync(path.join(dist, 'release.json'), `${JSON.stringify(release, null, 2)}\n`);
-
-// The schema is canonical in schemas/ and published alongside the app, so a
-// recorded result can be validated against the contract it was measured under.
-mkdirSync(path.join(dist, 'schemas'), { recursive: true });
-copyFileSync(
-  path.join(root, 'schemas', 'experiment-run.schema.json'),
-  path.join(dist, 'schemas', 'experiment-run.schema.json'),
-);
 
 console.log(`release.json written (commit ${commit ?? 'none'})`);

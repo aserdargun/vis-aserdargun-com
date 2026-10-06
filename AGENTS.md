@@ -1,11 +1,21 @@
 # VIS working contract
 
-- Build the bilingual computer-vision laboratory: a deterministic experiment surface that runs entirely in the browser. Every image is synthetic. No API key, account, backend, real camera or pretrained model is required, and the app must never reach a real sensor, file, network or account.
-- Keep measurement truth in `src/engine` and the Turkish/English copy in `src/content`. The synthetic scene is a model, not a shim around a real camera.
-- The picture and the answer key are painted in one pass. If they can drift apart, a reported number stops being a measurement.
-- Every reported number is computed against that answer key on the run in front of the reader. Never carry a value over from a previous configuration, and never present a synthetic mask as a real capture.
-- The CPU path is the default and a first-class one. A laboratory whose numbers require a discrete GPU is a laboratory that cannot be reproduced. WebGPU is offered, probed honestly, and every operator it cannot answer is named in the interface.
-- Keep Turkish and English controls, questions, methods and notes equivalent.
-- A missing GPU adapter is a reported fact, not a silent fallback: `requestAdapter()` returning null must be visible, because `navigator.gpu` existing does not mean a kernel can run.
+- Build the bilingual computer-vision knowledge bank: a deterministic teaching surface that runs
+  entirely in the browser. No API key, account, backend, real camera or pre-trained model is
+  required, and the app must never reach a real sensor, file, network or account beyond the
+  cross-links it prints.
+- **VIS explains and cites. CVL measures.** This is the whole division of labour, and it is not
+  negotiable per feature: any number added here is a claim the reader cannot recompute.
+- VIS therefore has **no measurement engine**. There is no `src/engine`, no scene, no metrics, no
+  WebGPU probe and no operator result. A layer with no primary source is not a layer; a concept
+  with no laboratory link is prose that cannot be checked.
+- Every concept names the layer in `src/content/laboratory-link.ts` that measures it, and the
+  "measure this" control is a real external link into https://cvl.aserdargun.com/. It must leave
+  this application — a control that switches views and stays here is the laboratory creeping back.
+- Keep the Turkish and English prose equivalent. Neither language may carry a concept, a boundary
+  or a source the other one lacks.
+- The only numbers VIS may render are the reader's own review counts. They are a record of what
+  the reader did, not a claim about the world.
 - Verify `npm run validate` and review `git diff --check` before handoff.
-- Local work only unless the user authorizes external publication. Preserve unrelated work and processes.
+- Local work only unless the user authorizes external publication. Preserve unrelated work
+  and processes.

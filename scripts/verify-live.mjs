@@ -37,7 +37,7 @@ async function readRelease(retries = 13) {
       } catch {
         fail('release.json is not valid JSON.');
       }
-      if (parsed.application !== 'vis-vision-laboratory') fail('release.json names the wrong application.');
+      if (parsed.application !== 'vis-knowledge-bank') fail('release.json names the wrong application.');
       if (!expected) return parsed;
       if (parsed.commit === expected) return parsed;
       console.log(`  attempt ${attempt}/${retries}: live commit ${parsed.commit} is not ${expected}`);
@@ -83,8 +83,13 @@ if (swaConfig.status !== 404) {
   fail(`staticwebapp.config.json should be consumed, not served (got ${swaConfig.status})`);
 }
 
+// VIS publishes no measurement schema: it explains and cites, and the operator
+// results it would describe belong to CVL. A 404 here is the expected result;
+// a 200 would mean a measurement contract has crept back into this surface.
 const schema = await get(`${base.replace(/\/$/, '')}/schemas/experiment-run.schema.json`);
-if (schema.status !== 200) fail(`published schema returned ${schema.status}`);
+if (schema.status !== 404) {
+  fail(`VIS must not publish a measurement schema (got ${schema.status})`);
+}
 
 const robots = await get(`${base.replace(/\/$/, '')}/robots.txt`);
 if (robots.status === 200) {

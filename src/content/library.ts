@@ -1,26 +1,24 @@
-import type { Text } from '../engine/types.ts';
-import type { ExperimentId } from './experiments.ts';
+import type { Text } from './types.ts';
+import type { LaboratoryLayer } from './laboratory-link.ts';
 
 /**
  * The knowledge bank.
  *
- * The laboratory measures. This file explains. The two are kept apart on
- * purpose: a number in this file would be a claim, not a measurement, and a
- * claim that cannot be recomputed in front of the reader does not belong in a
- * surface whose only claim is that its numbers can be.
+ * VIS explains; it does not measure. This file is the whole of that claim: every
+ * entry carries a name, a one-paragraph account in Turkish and English, and the
+ * primary source the account is taken from. Not one number appears here.
  *
- * Every entry therefore carries three things and no numbers:
+ * The measurements live in CVL at https://cvl.aserdargun.com/. Each concept
+ * therefore ends in a link to the laboratory layer that measures the same idea
+ * against a synthetic answer key, so the reader can check the prose by running
+ * it instead of believing it. This file never reaches into a measurement engine,
+ * which is what makes the split safe: a number here could not be recomputed by
+ * the reader, and a claim that cannot be recomputed is not a measurement.
  *
- * 1. a name and a one-paragraph account, in Turkish and English;
- * 2. the primary source the account is taken from — a paper or an official
- *    document, not a blog post;
- * 3. the experiment in this laboratory that exercises the same idea against
- *    the synthetic answer key, so a reader can check the prose by running it.
- *
- * A layer with no primary source is not a layer. A concept with no experiment
- * is prose pretending to be a laboratory. Both are rejected by
- * `tests/library.test.ts`, which is why the cross-links below are typed against
- * `ExperimentId` rather than written as free strings.
+ * A layer with no primary source is not a layer. A concept with no laboratory
+ * link is prose that cannot be checked. Both are rejected by
+ * `tests/library.test.ts`, which is why the link below is typed against
+ * `LaboratoryLayer` rather than written as a free string.
  */
 
 /** A primary source. `url` points at the publisher or the standard, not at a summary. */
@@ -54,16 +52,17 @@ export interface Concept {
   readonly term: Text;
   readonly summary: Text;
   readonly sourceIds: readonly string[];
-  /** The experiment that exercises this idea here. */
-  readonly experiment: ExperimentId;
+  /** The laboratory layer that measures this idea against an answer key. */
+  readonly measures: LaboratoryLayer;
 }
 
 export type LayerId = 'signal' | 'filtering' | 'edges' | 'regions' | 'geometry' | 'learning' | 'motion';
 
 /**
  * Seven layers, in the order a perception pipeline actually consumes them.
- * The order matches the experiments, which is deliberate: the reference and the
- * measurement walk the same path.
+ * The order matches the laboratory's own, which is deliberate: the reading and
+ * the measurement walk the same path, so a layer here and a layer in CVL can be
+ * named the same thing without either application having to translate it.
  */
 export const LAYERS: readonly Layer[] = [
   {
@@ -338,7 +337,7 @@ export const SOURCES: readonly Source[] = [
 
 /**
  * Concepts. One entry per idea, each bound to a primary source and to the
- * experiment that exercises it here.
+ * laboratory layer that measures it against an answer key.
  */
 export const CONCEPTS: readonly Concept[] = [
   {
@@ -350,7 +349,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'An image is samples of a continuous light field on a grid. If the grid cannot carry the highest frequency, a high-frequency component appears to be low-frequency and no filter recovers it.',
     },
     sourceIds: ['sampling-appendix'],
-    experiment: 'ground-truth',
+    measures: 'signal',
   },
   {
     id: 'noise-floor',
@@ -361,7 +360,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'The lower bound of a measurement is its noise floor. Noise does not start at zero but at a level, so anything below a threshold is noise rather than information.',
     },
     sourceIds: ['sampling-appendix'],
-    experiment: 'ground-truth',
+    measures: 'signal',
   },
   {
     id: 'convolution-kernel',
@@ -372,7 +371,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Filtering reduces a neighbourhood window to a weighted sum. A Gaussian kernel is two-dimensional and separable: it can be applied along x and then along y. A Sobel kernel is not separable, and treating one row as a single one-dimensional vector computes a different filter.',
     },
     sourceIds: ['tomasi-1998'],
-    experiment: 'edges',
+    measures: 'edges',
   },
   {
     id: 'separable-blur',
@@ -383,7 +382,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'A two-dimensional Gaussian kernel produces the same result as a pair of one-dimensional passes and reduces the cost from quadratic to linear. Both axes must be applied: skipping one makes two engines compute different filters, and the difference becomes visible in the measurement.',
     },
     sourceIds: ['tomasi-1998'],
-    experiment: 'edges',
+    measures: 'edges',
   },
   {
     id: 'gradient-magnitude',
@@ -394,7 +393,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'An edge is where intensity changes quickly, and that change combines derivatives along two axes. Magnitude gives the amount of change, not its direction.',
     },
     sourceIds: ['marr-hildreth-1980'],
-    experiment: 'edges',
+    measures: 'edges',
   },
   {
     id: 'hysteresis',
@@ -405,7 +404,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Two thresholds are used: only pixels above the high threshold are strong edges, and those above the low threshold become weak edges if adjacent to a strong one. This reconnects broken chains, and if the traversal does not start from strong pixels the whole chain is lost.',
     },
     sourceIds: ['canny-1986'],
-    experiment: 'edges',
+    measures: 'edges',
   },
   {
     id: 'canny-criteria',
@@ -416,7 +415,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'A good edge should be found, localised against other edges, and should not respond twice to the same boundary. Together these three criteria justify how the threshold is chosen.',
     },
     sourceIds: ['canny-1986'],
-    experiment: 'edges',
+    measures: 'edges',
   },
   {
     id: 'otsu-threshold',
@@ -427,7 +426,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'The threshold is derived from the image: the value that minimises the within-class variance of two histogram classes is chosen. Because it is never picked by hand, the same scene always yields the same measurement.',
     },
     sourceIds: ['otsu-1979'],
-    experiment: 'regions',
+    measures: 'regions',
   },
   {
     id: 'morphology-shadow',
@@ -438,7 +437,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Opening and closing close gaps in borders and remove small noise. But if an object’s cast shadow cannot be separated from the object, the region is counted wrongly, and that is the most frequent failure.',
     },
     sourceIds: ['tomasi-1998'],
-    experiment: 'regions',
+    measures: 'regions',
   },
   {
     id: 'connected-components',
@@ -449,7 +448,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Regions are labelled by a connectivity rule. Four-connectivity severs diagonal contact, so the rule used must agree with the answer key it is scored against.',
     },
     sourceIds: ['paralic-2012'],
-    experiment: 'regions',
+    measures: 'regions',
   },
   {
     id: 'hough-accumulator',
@@ -460,7 +459,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Straight lines are sought in a parameter space where every edge pixel casts a vote: peak search happens in parameter space rather than in pixels, which is non-linear and more robust to noise. Interpretation still depends on the camera, because a peak in parameter space only denotes a line once the projection is correct.',
     },
     sourceIds: ['zhang-2000', 'hartley-zisserman'],
-    experiment: 'lines',
+    measures: 'geometry',
   },
   {
     id: 'horizon-ambiguity',
@@ -471,7 +470,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'A horizon in an image relies on the assumption that the ground is flat. Lose the horizon and the distinction between up and down is lost too: orientation comes from this assumption, not from geometry alone.',
     },
     sourceIds: ['hartley-zisserman'],
-    experiment: 'lines',
+    measures: 'geometry',
   },
   {
     id: 'convolution-learning',
@@ -482,7 +481,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'The difference between a hand-written edge rule and a learned kernel is that the rule is embedded in data. The network never sees the answer key while training; the measurement uses the evaluation scene.',
     },
     sourceIds: ['lecun-1998'],
-    experiment: 'learned',
+    measures: 'learning',
   },
   {
     id: 'generalisation-cost',
@@ -493,7 +492,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Learning is the price of showing an object to a model that knows no rules. On the same answer key, the difference between the two paths measures that price.',
     },
     sourceIds: ['krizhevsky-2012', 'he-2016'],
-    experiment: 'learned',
+    measures: 'learning',
   },
   {
     id: 'texture-dependence',
@@ -504,7 +503,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Optical flow is derived from how the pattern around a point changes. Without texture there is no pattern, and flow becomes ambiguous: the result is not zero but unmeasurable.',
     },
     sourceIds: ['horn-schunck-1981', 'ojala-2002'],
-    experiment: 'motion',
+    measures: 'motion',
   },
   {
     id: 'flow-search-window',
@@ -515,7 +514,7 @@ export const CONCEPTS: readonly Concept[] = [
       en: 'Because displacement is unknown, the solver tests neighbouring pixels as candidates for every point. A larger window raises both search cost and the risk of a wrong match, and both are bounded.',
     },
     sourceIds: ['horn-schunck-1981'],
-    experiment: 'motion',
+    measures: 'motion',
   },
 ];
 

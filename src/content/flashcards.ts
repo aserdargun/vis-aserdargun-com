@@ -1,4 +1,4 @@
-import type { Text } from '../engine/types.ts';
+import type { Text } from './types.ts';
 import { CONCEPTS, layerById } from './library.ts';
 import type { LayerId } from './library.ts';
 

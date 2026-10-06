@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CARDS, buildQueue, grade, initialCardProgress, isIsoDay, toIsoDay } from '../src/content/flashcards.ts';
 import { CONCEPTS, conceptById, layerById } from '../src/content/library.ts';
-import { experimentById } from '../src/content/experiments.ts';
+import { LABORATORY_LAYERS } from '../src/content/laboratory-link.ts';
 import { parseState, emptyState } from '../src/learning/progress.ts';
 import type { CardProgress } from '../src/content/flashcards.ts';
 
@@ -16,12 +16,12 @@ describe('card derivation', () => {
     }
   });
 
-  it('binds every card to a real concept, layer and experiment', () => {
+  it('binds every card to a real concept, layer and measured layer', () => {
     for (const card of CARDS) {
       const concept = conceptById(card.conceptId);
       expect(concept.layer).toBe(card.layer);
       expect(() => layerById(card.layer)).not.toThrow();
-      expect(() => experimentById(concept.experiment)).not.toThrow();
+      expect(LABORATORY_LAYERS, `${concept.id} -> ${concept.measures}`).toContain(concept.measures);
     }
   });
 

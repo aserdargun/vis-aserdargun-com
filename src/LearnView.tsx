@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CARDS, buildQueue, grade, initialCardProgress } from './content/flashcards.ts';
 import type { Card } from './content/flashcards.ts';
-import { experimentById } from './content/experiments.ts';
+import { measureLink } from './content/laboratory-link.ts';
 import { conceptById } from './content/library.ts';
 import { t, type Lang } from './content/i18n.ts';
 import { recordReview, useProgress, useResetProgress } from './learning/progress.ts';
@@ -10,11 +10,11 @@ import { recordReview, useProgress, useResetProgress } from './learning/progress
  * The review surface.
  *
  * A card is graded by the reader, never scored by the application. There is no
- * correctness claim anywhere in this file, because the laboratory's contract is
- * that no number here would be a measurement: the only number it reports is the
- * reader's own review history.
+ * correctness claim anywhere in this file, because the one number this surface
+ * reports is the reader's own review history — nothing here could be mistaken
+ * for a measurement, and nothing here is one.
  */
-export function LearnView({ lang, onMeasure }: { lang: Lang; onMeasure: (id: ReturnType<typeof experimentById>['id']) => void }) {
+export function LearnView({ lang }: { lang: Lang }) {
   const progress = useProgress();
   const reset = useResetProgress();
   const [index, setIndex] = useState(0);
@@ -75,15 +75,15 @@ export function LearnView({ lang, onMeasure }: { lang: Lang; onMeasure: (id: Ret
                   </button>
                 ))}
               </div>
-              <button
-                type="button"
+              <a
                 className="kb-measure"
-                onClick={() => onMeasure(conceptById(current.conceptId).experiment)}
+                href={measureLink(conceptById(current.conceptId).measures)}
+                target="_blank"
+                rel="noreferrer"
                 data-testid="learn-measure"
               >
-                {t('measureIt', lang)} · {t('experimentLink', lang)}{' '}
-                {experimentById(conceptById(current.conceptId).experiment).title[lang]}
-              </button>
+                {t('measureIt', lang)} · {t('laboratoryLink', lang)}
+              </a>
             </>
           ) : (
             <button

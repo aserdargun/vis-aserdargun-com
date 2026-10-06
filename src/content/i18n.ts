@@ -1,84 +1,46 @@
-import type { Text } from '../engine/types.ts';
+import type { Lang, Text } from './types.ts';
 
-export type Lang = 'tr' | 'en';
-
+export type { Lang, Text };
 export const LANGS: readonly Lang[] = ['tr', 'en'];
 
+/**
+ * Interface strings, Turkish and English side by side on purpose.
+ *
+ * Every key here belongs to a surface that explains. There is no measurement
+ * vocabulary in this file — no metric name, no engine probe, no threshold
+ * control — because none of those words mean anything without the answer key
+ * they were computed against, and the answer key lives in CVL.
+ */
 export const UI = {
   appName: { tr: 'VIS', en: 'VIS' } as Text,
   tagline: {
-    tr: 'Sentetik sahne · Bilinen cevap · Ölçülen algı',
-    en: 'Synthetic scene · Known truth · Measured perception',
-  } as Text,
-  experiments: { tr: 'Deneyler', en: 'Experiments' } as Text,
-  engine: { tr: 'Motor', en: 'Engine' } as Text,
-  method: { tr: 'Yöntem', en: 'Method' } as Text,
-  results: { tr: 'Sonuçlar', en: 'Results' } as Text,
-  question: { tr: 'Soru', en: 'Question' } as Text,
-  expectation: { tr: 'Beklenti', en: 'Expectation' } as Text,
-  humanoid: { tr: 'İnsanoid neden önemli', en: 'Why a humanoid cares' } as Text,
-  run: { tr: 'Deneyi çalıştır', en: 'Run experiment' } as Text,
-  running: { tr: 'Çalışıyor', en: 'Running' } as Text,
-  sceneSeed: { tr: 'Sahne tohumu', en: 'Scene seed' } as Text,
-  objects: { tr: 'Nesne sayısı', en: 'Objects' } as Text,
-  noise: { tr: 'Gürültü', en: 'Noise' } as Text,
-  otsuOffset: { tr: 'Eşik kaydırması', en: 'Threshold offset' } as Text,
-  depthWeight: { tr: 'Boyut ağırlığı', en: 'Size weight' } as Text,
-  preferGpu: { tr: 'WebGPU motorunu dene', en: 'Try the WebGPU engine' } as Text,
-  resetScene: { tr: 'Yeni sahne', en: 'New scene' } as Text,
-  iou: { tr: 'IoU', en: 'IoU' } as Text,
-  accuracy: { tr: 'Piksel doğruluğu', en: 'Pixel accuracy' } as Text,
-  mae: { tr: 'Ortalama mutlak hata', en: 'Mean absolute error' } as Text,
-  edgeRecall: { tr: 'Kenar hatırlama', en: 'Edge recall' } as Text,
-  detection: { tr: 'Tespit', en: 'Detection' } as Text,
-  perClass: { tr: 'Sınıf bazında IoU', en: 'Per-class IoU' } as Text,
-  compared: { tr: 'Karşılaştırma', en: 'Comparison' } as Text,
-  notes: { tr: 'Notlar', en: 'Notes' } as Text,
-  truth: { tr: 'Cevap anahtarı', en: 'Answer key' } as Text,
-  output: { tr: 'Çıktı', en: 'Output' } as Text,
-  syntheticNotice: {
-    tr: 'Bütün görüntüler sentetiktir. Gerçek kamera, gerçek sahne veya gerçek model kullanılmaz.',
-    en: 'Every image is synthetic. No real camera, real scene or real model is used.',
-  } as Text,
-  noBackend: {
-    tr: 'Backend yok, hesap gönderimi yok, hesap kaydı yok. Her şey bu tarayıcıda çalışır.',
-    en: 'No backend, no uploads, no account. Everything runs in this browser.',
-  } as Text,
-  nextStage: { tr: 'İkinci aşama', en: 'Second stage' } as Text,
-  precision: { tr: 'Kesinlik', en: 'Precision' } as Text,
-  recall: { tr: 'Hatırlama', en: 'Recall' } as Text,
-  falsePositives: { tr: 'Yanlış pozitif', en: 'False positives' } as Text,
-  falseNegatives: { tr: 'Yanlış negatif', en: 'False negatives' } as Text,
-  adapterMissing: {
-    tr: 'WebGPU bağdaştırıcısı yok — CPU yolunda ölçülüyor',
-    en: 'No WebGPU adapter — measuring on the CPU path',
+    tr: 'Yedi katman · Birincil kaynaklar · Her kavram ölçülebilir',
+    en: 'Seven layers · Primary sources · Every concept is measurable',
   } as Text,
   knowledge: { tr: 'Bilgi bankası', en: 'Knowledge bank' } as Text,
-  laboratory: { tr: 'Laboratuvar', en: 'Laboratory' } as Text,
-  layers: { tr: 'Katmanlar', en: 'Layers' } as Text,
+  learn: { tr: 'Tekrar', en: 'Review' } as Text,
   sources: { tr: 'Kaynaklar', en: 'Sources' } as Text,
   responsibility: { tr: 'Sorumluluk', en: 'Responsibility' } as Text,
   notFor: { tr: 'Ne için değil', en: 'Not for' } as Text,
   buildsOn: { tr: 'Üzerine kurulur', en: 'Builds on' } as Text,
   concepts: { tr: 'Kavramlar', en: 'Concepts' } as Text,
   measureIt: { tr: 'Bunu ölç', en: 'Measure this' } as Text,
+  laboratoryLink: { tr: 'CVL laboratuvarında aç', en: 'Open in the CVL laboratory' } as Text,
   sourceNote: {
-    tr: 'Buradaki her açıklama birincil kaynağa bağlıdır ve deneylerden ayrıdır. Buradaki hiçbir sayı ölçüm değildir; ölçümler yalnızca laboratuvarda, cevap anahtarına karşı hesaplanır.',
-    en: 'Every explanation here is bound to a primary source and is kept apart from the experiments. No number here is a measurement; measurements are computed in the laboratory only, against the answer key.',
+    tr: 'Buradaki her açıklama birincil kaynağa bağlıdır. Buradaki hiçbir sayı ölçüm değildir: ölçümler, aynı fikir cevap anahtarına karşı CVL laboratuvarında hesaplanır.',
+    en: 'Every explanation here is bound to a primary source. No number here is a measurement: measurements are computed in the CVL laboratory, against an answer key, on the same idea.',
   } as Text,
-  experimentLink: { tr: 'Deney', en: 'Experiment' } as Text,
-  learn: { tr: 'Tekrar', en: 'Review' } as Text,
   learnNote: {
-    tr: 'Kartlar bilgi bankasındaki kavramlardan türetilir ve yalnızca bu tarayıcıda saklanır. Doğru ya da yanlış hükmü burada verirsiniz; uygulama puan vermez. Karttan deneye geçtiğinizde ölçüm yine cevap anahtarına karşı hesaplanır.',
-    en: 'Cards are derived from the knowledge bank and stay in this browser only. You are the one who judges them right or wrong; the application scores nothing. Following a card into an experiment puts the measurement back against the answer key.',
+    tr: 'Kartlar bilgi bankasındaki kavramlardan türetilir ve yalnızca bu tarayıcıda saklanır. Doğru ya da yanlış hükmü burada verirsiniz; uygulama puan vermez. Karttan laboratuvara geçtiğinizde ölçüm CVL’de cevap anahtarına karşı hesaplanır.',
+    en: 'Cards are derived from the knowledge bank and stay in this browser only. You are the one who judges them right or wrong; the application scores nothing. Following a card into the laboratory puts the measurement back against the answer key, in CVL.',
   } as Text,
   reveal: { tr: 'Yanıtı göster', en: 'Show the answer' } as Text,
   learnDone: { tr: 'Şu an tekrar zamanı olan kart yok. Yeni kartlar yarın açılır.', en: 'No card is due right now. New cards open tomorrow.' } as Text,
   learnLocal: { tr: 'İlerleme bu tarayıcıda tutulur; hesap gönderimi, backend veya çevrimiçi kayıt yoktur.', en: 'Progress stays in this browser; there is no upload, backend or online account.' } as Text,
   learnReset: { tr: 'İlerlemeyi sıfırla', en: 'Reset progress' } as Text,
   footerNote: {
-    tr: 'VIS, bilgisayarlı görünün temel şeridinde bir bilgi bankasıdır: yedi katman, birincil kaynaklar ve her kavramı ölçebilen deneyler. Laboratuvar ölçer, bilgi bankası açıklar. Eğitim ve değişmez tohum.',
-    en: 'VIS is a knowledge bank in the computer-vision foundation lane: seven layers, primary sources, and an experiment that measures every concept. The laboratory measures; the knowledge bank explains. Educational and deterministic.',
+    tr: 'VIS açıklar, ölçmez. Yedi algı katmanı, her biri birincil kaynağa bağlı. Ölçümler CVL’de, cevap anahtarına karşı hesaplanır. Eğitim ve değişmez tohum.',
+    en: 'VIS explains, it does not measure. Seven perception layers, each bound to a primary source. Measurements are computed in CVL, against the answer key. Educational and deterministic.',
   } as Text,
 } as const;
 

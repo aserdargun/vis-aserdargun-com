@@ -1,19 +1,39 @@
-# VIS — Vision Laboratory
+# VIS — Vision Knowledge Bank
 
-**Sentetik sahne. Bilinen cevap. Ölçülen algı.**
-**Synthetic scene. Known truth. Measured perception.**
+**Yedi algı katmanı. Birincil kaynaklar. Her kavram ölçülebilir.**
+**Seven perception layers. Primary sources. Every concept is measurable.**
 
-VIS, tarayıcı içinde çalışan deterministik bir bilgisayarlı görü laboratuvarıdır. Her sahne prosedürel olarak üretilir ve **piksel başına doğru cevap haritasıyla birlikte** çizilir. Bu yüzden raporlanan her sayı bir ölçümdür, bir tahmin değil.
+VIS, bilgisayarlı görünün temel şeridinde bir **bilgi bankasıdır**: yedi algı katmanını, her birini
+birincil kaynağa bağlayarak açıklar ve **ölçmez**. [aserdargun.com](https://aserdargun.com/)
+üzerinde temel şeridinde, [GPU](https://gpu.aserdargun.com/) ve [LLM](https://llm.aserdargun.com/)
+ile yan yana durur; hepsini **00 Architect** şeridindeki [AIA](https://aia.aserdargun.com/) türetir.
 
-VIS, [aserdargun.com](https://aserdargun.com/) üzerinde **temel şeridinde**, [GPU](https://gpu.aserdargun.com/) ve [LLM](https://llm.aserdargun.com/) ile yan yana duran bilgisayarlı görü bilgi bankasıdır; hepsini **00 Architect** şeridindeki [AIA](https://aia.aserdargun.com/) türetir. İki yüzeyi vardır ve kasıtlı olarak ayrıdır:
+## VIS açıklar, CVL ölçer
+
+Bu iki uygulama bilinçli olarak ayrıdır ve ikisi de birbirinin kopyası değildir:
+
+| Uygulama | Ne yapar | Motor | Nerede |
+|---|---|---|---|
+| **VIS** | Kavramı anlatır, kaynağını gösterir, hatırlatmayı ayarlar | Yok — ölçüm motoru içermez | [vis.aserdargun.com](https://vis.aserdargun.com/) |
+| **CVL** | Cevap anahtarına karşı hesaplar | CPU varsayılan, WebGPU isteğe bağlı | [cvl.aserdargun.com](https://cvl.aserdargun.com/) |
+
+Bölünmenin nedeni basit: **bir sayının ancak okuyucu onu yeniden hesaplayabiliyorsa ölçüm olur.**
+VIS'te ölçüm motoru yoktur, dolayısıyla ortaya çıkan her sayı bir iddiadır — iddialar burada
+konumlanmaz. CVL ise kaynak gösteremez, bu yüzden bir işleçin *ne yaptığını* ve *nerede
+durduğunu* açıklamaz. Her kavramın altındaki **Bunu ölç** düğmesi, o fikri ölçen laboratuvar
+katmanına giden gerçek bir dış bağlantıdır.
+
+Bu, daha önce ikisinin de birbirinin kopyası olan bir dönemin düzeltmesidir: iki ayrı motor,
+iki ayrı cevap anahtarı ve okuyucunun hangisinin konuştuğunu ayırt edemediği iki ayrı ölçüm.
+
+**Bütün veriler sentetiktir.** Gerçek kamera, gerçek sahne, önceden eğitilmiş model, hesap
+gönderimi, hesap kaydı veya backend yoktur.
+
+## İki yüzey
 
 - **Bilgi bankası** — yedi katman, her biri birincil kaynağa bağlı; açıklar, ölçmez.
-- **Tekrar** — kartlar bilgi bankasından türetilir, SM-2 ile zamanlanır, yalnızca bu tarayıcıda saklanır. Puanı okur verir.
-- **Laboratuvar** — cevap anahtarına karşı hesaplar; ölçer, açıklamaz.
-
-Her kavram, onu gerçekten çalıştıran bir deneye bağlıdır: bilgi bankasındaki *Bunu ölç* düğmesi o deneyi laboratuvarda açar. Sorulan soru COCO mAP'ı değil: **fizik, ışık, örtüşme ve gecikmeyle karşılaşınca bu algı hayatta kalır mı?**
-
-**Bütün veriler sentetiktir.** Gerçek kamera, gerçek sahne, önceden eğitilmiş model, hesap gönderimi, hesap kaydı veya backend yoktur.
+- **Tekrar** — kartlar bilgi bankasından türetilir, SM-2 ile zamanlanır, yalnızca bu tarayıcıda
+  saklanır. Puanı okur verir.
 
 ## Bilgi bankası · Knowledge bank
 
@@ -27,31 +47,15 @@ Her kavram, onu gerçekten çalıştıran bir deneye bağlıdır: bilgi bankası
 | 06 | Öğrenme | Konvolüsyonlu ağ ve genelleme bedeli. |
 | 07 | Hareket | Seyrek optik akış ve dokuya bağımlılık. |
 
-Her katman *ne için değil* sınırını da taşır ve en az bir hakemli kaynağa bağlıdır. Bilgi bankasında hiçbir sayı ölçüm değildir; ölçümler yalnızca laboratuvarda hesaplanır.
+Her katman *ne için değil* sınırını da taşır ve en az bir hakemli kaynağa bağlıdır. Bilgi
+bankasında hiçbir sayı ölçüm değildir; ölçümler yalnızca CVL'de hesaplanır.
 
-## Deneyler
+## Ölçüm nerede?
 
-| # | Deney | Ne ölçüyor |
-|---|---|---|
-| 01 | Bilin cevap anahtarı | Nesnenin gerçekte nerede olduğu. Ölçümün geçerli olma nedeni. |
-| 02 | Kenar mı, gürültü mü? | Sobel + Canny; nesne sınırı bulma zorluğu, kenar hatırlama. |
-| 03 | Kenar bölge değildir | Otsu + morfoloji + bağlı bileşen; gölgelerin nesne sanılma hatası. |
-| 04 | Düz çizgi nerede? | Hough dönüşümü; ufkun yokluğunda çizgi bulunamaz. |
-| 05 | Öğrenmek ne satın alıyor? | Çalışma anında eğitilen küçük CNN ile elle yazılmış yolun **aynı cevap anahtarında** farkı. |
-| 06 | Derinlik sensörü yok | Monoküler boyut ve zemin düzlemi ipuçları, sıralı korelasyonla puanlanır. |
-| 07 | Kareler arası ne değişti? | Lucas-Kanade akışı; bilinen 3 piksel kaydırmanın geri bulunması. |
-| 08 | Sentetik eğitim, gerçek dünya | Aynı eşik, aynı morfoloji; yalnızca giriş değişir. Düşüş ölçülür. |
-
-## İki motor, tek sözleşme
-
-| Motor | Durum | Kapsam |
-|---|---|---|
-| **CPU** (varsayılan) | Her yerde çalışır, tam olarak deterministik | Tüm işlemler |
-| **WebGPU** | `--enable-unsafe-webgpu` gerektirir, isteğe bağlı | Veri paralel işlemler; `canny` ve `hough` sıralı yapılarından dolayı CPU'da kalır |
-
-İkisi de arayüzde **dürüstçe raporlanır**: güvenli bağlam, `navigator.gpu`, adapter, üretici ve mimari ayrı ayrı gösterilir, ve CPU/GPU farkı operatör operatör listelenir. GPU `f32`, CPU `f64` biriktirir; küçük fark normal, büyük fark hatadır.
-
-`requestAdapter()` sessizce `null` dönebilir — `navigator.gpu` var olması bir çekirdeğin çalışacağı anlamına gelmez. Bu yüzden arayüz bunu açıkça söyler ve sessiz geri düşmez.
+CVL'de sekiz katman vardır ve her biri cevap anahtarına karşı hesaplanır: `psnr`,
+`separableVsNaiveRmse`, `f1`, `meanIoU`, `recall`, `iouDelta`, `objectRankCorrelation`,
+`meanEndpointError`. CPU yolu varsayılandır ve tam olarak deterministiktir; WebGPU isteğe bağlıdır
+ve desteklemeyen işlemler arayüzde adıyla sayılır.
 
 ## Çalıştırma
 
@@ -64,28 +68,34 @@ npm start
 
 Yerel önizleme: **http://127.0.0.1:8062**
 
-- `npm start`: yalnız bu depoya ait, arka planda yönetilen Vite süreci. `.local/server.log` ve `.local/server.json` yazar. Port doluysa başka süreci kapatmaz.
+- `npm start`: yalnız bu depoya ait, arka planda yönetilen Vite süreci. `.local/server.log` ve
+  `.local/server.json` yazar. Port doluysa başka süreci kapatmaz.
 - `npm stop`: kaydedilmiş PID'nin **cwd ve Vite komutunu** doğrulayarak yalnızca bu depoyu durdurur.
 - `npm run dev`: ön planda geliştirme; `Ctrl+C` ile durur.
 - `npm run build`: TypeScript denetimi, `dist/` derlemesi, `release.json` ve artifact doğrulaması.
 - `npm run preview`: derlenmiş uygulama, http://127.0.0.1:8063
-- `npm test`: 40 alan testi (determinizm, operatörler, metrikler, akış, öğrenilen yol).
-- `npm run test:ui`: 17 tarayıcı testi — 12 arayüz + 5 WebGPU. GPU paketi gerçek adapter yoksa **atlamaz, başarısız olur**.
+- `npm test`: 46 alan testi (kütüphane yapısı, kaynak bağları, kart türetimi, SM-2 zamanlama).
+- `npm run test:ui`: 12 tarayıcı testi — yüzey sınırı, kaynak bağları, çapraz bağlantı, tekrar.
 - `npm run validate`: lint + build + alan testleri + tarayıcı testleri.
 
 ## Doğrulama sözleşmesi
 
-- `deterministik`: aynı tohum → bayt bayt aynı sahne, rastgelelik yok.
-- `ground-truth`: üreticinin kendi maskesi 1.0000 IoU vermeli; sapma hata işaretidir.
-- `parity`: CPU ve GPU aynı girdide ölçülür, toleranslı karşılaştırılır (1e-3).
-- `adapter`: güvenli bağlam → `navigator.gpu` → `requestAdapter()` → `requestDevice()` zinciri açıkça doğrulanır.
+- `sourced`: her katman ve her kavram en az bir hakemli kaynağa bağlıdır.
+- `no-numbers`: bilgi bankasının metninde hiçbir sayı yoktur; bulunursa test kızar.
+- `cross-linked`: her kavram, onu ölçen bir CVL katmanına dış bağlantı verir.
+- `no-engine`: yapısal olarak motor içermez; ölçüm yüzeyi burada yeniden açılamaz.
 
 ## aserdargun.com öğrenme sistemindeki yeri
 
-VIS, fiziksel yapay zekâ katmanının algı tarafıdır. [WFM](https://wfm.aserdargun.com/) perception track'ini ilan eder ama uygulamaz; VIS o halkayı kapatır. [ITL](https://itl.aserdargun.com/), [HEX](https://hex.aserdargun.com/) ve [ENG](https://eng.aserdargun.com/) ile kavramsal olarak bağlıdır. Bu bağlar öğrenme ilişkileridir: çalışma, onay veya veri aktarımı olmaz.
+VIS, fiziksel yapay zekâ katmanının algı tarafında **akademik** yarısıdır. [WFM](https://wfm.aserdargun.com/)
+perception track'ini ilan eder; VIS o halkayı açıklamayla kapatır, [CVL](https://cvl.aserdargun.com/)
+ise ölçümle. [ITL](https://itl.aserdargun.com/), [HEX](https://hex.aserdargun.com/) ve
+[ENG](https://eng.aserdargun.com/) ile kavramsal olarak bağlıdır. Bu bağlar öğrenme ilişkileridir:
+çalışma, onay veya veri aktarımı olmaz.
 
 ## Kapsam
 
-- Eğitim amaçlı, sentetik ve deterministik. Gerçek model, gerçek sensör, telemetri, hesap veya kalıcı depolama yoktur.
-- Sonuç şeması: [`schemas/experiment-run.schema.json`](schemas/experiment-run.schema.json)
+- Eğitim amaçlı, sentetik ve deterministik. Gerçek model, gerçek sensör, telemetri, hesap veya
+  kalıcı depolama yoktur.
+- Ölçüm şeması CVL'de yaşar: [`cvl.aserdargun.com/schemas/experiment-run.schema.json`](https://cvl.aserdargun.com/schemas/experiment-run.schema.json)
 - Dağıtım: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)

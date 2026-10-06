@@ -1,33 +1,65 @@
 # VIS — Architecture
 
-## Katmanlar
+## Bölünmenin mimarisi
+
+VIS **açıklar**, CVL **ölçer**. Bu, iki ayrı depo değil, iki ayrı *sorumluluktur* ve mimarinin
+tamamı bu ayrımın sürdürülebilir olması için kurulmuştur.
 
 ```
-src/engine/     ölçüm mantığı — kopyalanabilir, dilden bağımsız
-  types.ts       Tensor sözleşmesi, Engine arayüzü
-  rng.ts         mulberry32 — her sahne tohumdan türetilir
-  scene.ts       sentetik sahne + piksel başına cevap anahtarı
-  ops.ts         klasik CV: gaussian, convolve, sobel, canny, otsu,
-                 morphology, connectedComponents, hough, lucasKanade
-  metrics.ts     IoU, doğruluk, MAE, kenar hatırlama, tespit raporu
-  cnn.ts         çalışma anında eğitilen iki katmanlı ağ
-  depth.ts       monoküler ipuçları + Spearman puanlama
-  cpuEngine.ts   CPU implementasyonu + karşılaştırma
-  gpuEngine.ts   WebGPU implementasyonu + adapter probu
-  gpuShaders.ts  WGSL çekirdekleri
-  selectEngine.ts motor seçimi + dürüst rapor
-  pipeline.ts    deney başına ölçüm
-
-src/content/   yalnızca TR/EN metin
-  experiments.ts  sekiz deney: soru, yöntem, beklenti
-  library.ts      bilgi bankası: 7 katman, kavramlar, birincil kaynaklar
-  flashcards.ts   SM-2 zamanlayıcı + kavramlardan türetilen kartlar
-  i18n.ts         arayüz metinleri
-src/App.tsx     arayüz — mantık çağırmaz, yalnızca gösterir
-src/KnowledgeBank.tsx  bilgi bankası görünümü — ölçüm çağırmaz
-src/LearnView.tsx      tekrar görünümü — puan vermez, okur puanlar
+src/content/
+  types.ts          TR/EN metin çifti (eski motor tipleriyle yolculuk etmesin diye taşındı)
+  laboratory-link.ts  sınır sözleşmesi: ölçen uygulama, sekiz katman, measureLink()
+  library.ts        bilgi bankası: 7 katman, kavramlar, birincil kaynaklar
+  flashcards.ts     SM-2 zamanlayıcı + kavramlardan türetilen kartlar
+  i18n.ts           arayüz metinleri (yalnızca öğretim yüzeyine ait sözcükler)
+src/App.tsx         iki yüzey: bilgi bankası ve tekrar
+src/KnowledgeBank.tsx  bilgi bankası — ölçüm çağırmaz, bağlantı verir
+src/LearnView.tsx       tekrar — puan vermez, okur puanlar
 src/learning/progress.ts  localStorage ilerleme; okuma anında yeniden doğrulanır
 ```
+
+**`src/engine` yoktur.** Bu bir eksiklik değil, sözleşmenin kendisidir: motoru olmayan bir
+yüzey ölçüm iddiasında bulunamaz. `release.json` bunu `measurementEngine: false` olarak
+yayımlar ve `scripts/verify-dist.mjs` yayınlanan artifact içinde bir ölçüm şeması bulursa
+derlemeyi başarısız kılar.
+
+## Ölçüm ile açıklama ayrımı
+
+| Uygulama | Ne yapar | Motor | Kanıtı |
+|---|---|---|---|
+| VIS | Kavramı anlatır, kaynağını gösterir | Yok | `no-engine` yapısal testi |
+| CVL | Cevap anahtarına karşı hesaplar | CPU + isteğe bağlı WebGPU | `ground-truth` sözleşme testi |
+
+Sınır **karşılıklı bir bağlantıyla** görünür kılınır:
+
+- Her VIS kavramı, `laboratory-link.ts` içindeki `LaboratoryLayer` değerlerinden birini adlandırır
+  ve arayüzdeki "Bunu ölç" düğmesi `https://cvl.aserdargun.com/#katman-<katman>` adresine giden
+  gerçek bir dış bağlantıdır.
+- Her CVL katmanı, kendi okuması için `https://vis.aserdargun.com/#katman-<katman>` bağlantısını
+  taşır.
+
+Böylece hiçbir kavram yalnızca okuyucunun güvenine dayanmaz: açıklamayı okuyan kişi onu
+ölçebileceği katmana bir tıkla ulaşır, ölçümü yapan kişi de ne ölçtüğünün kaynağına.
+
+Bu ayrım **yeni**: daha önce VIS de kendi laboratuvarını barındırıyordu ve o yüzey CVL'in
+kopyasıydı. İki motor, iki cevap anahtarı ve okuyucunun hangisinin konuştuğunu ayırt
+edemediği iki ölçüm vardı. Kopya kaldırıldığında aynı zamanda bakım yükü de ortadan kalktı.
+
+## Kaynaklar
+
+Kaynaklar birincildir (makale veya kurumsal belge) ve `https://` ile başlar. Bir katmanın
+kaynağı yoksa o katman kabul edilmez; `tests/library.test.ts` bunu reddeder. Kaynak metinleri
+ve kavram özetleri TR/EN çiftleriyle yazılır ve `tests/library.test.ts` her alanın iki
+dilde de bulunduğunu doğrular.
+
+## Metinde sayı olmaz
+
+`tests/library.test.ts` bilgi bankasının tüm metnini tarar ve hiçbir rakam bulamaz. Kaynak
+yılları (1998, 1986) metaveridir ve bu taramadan muaftır; metnin kendisi sayı içeremez,
+çünkü okuyucunun yeniden hesaplayamayacağı bir sayı bir iddiadır.
+
+Tek istisna, okurun kendi tekrar geçmişinden gelen sayaçlardır: bunlar dünyaya ilişkin bir
+iddia değil, okurun ne yaptığının kaydıdır.
 
 ## Tekrar katmanı
 
@@ -48,82 +80,8 @@ kartı ertesi güne alır ve sapma sayılır; başarıda aralık 1, 6, sonra kol
   düzenlenebildiği için her alan okuma anında yeniden doğrulanır; bozuk kayıt
   atılır, hata fırlatılmaz. Hesap yok, gönderim yok, backend yok.
 
-## Ölçüm ile açıklama ayrımı
+## Dil eşdeğerliği
 
-`src/engine` ölçer. `src/content/library.ts` açıklar. Bu iki yüzey bilinçli olarak
-ayrıdır ve arayüzde ayrı görünür:
-
-- **Laboratuvar** cevap anahtarına karşı hesaplar; her sayı okuyucunun önünde
-  yeniden üretilebilir.
-- **Bilgi bankası** yalnızca metin ve kaynak gösterir. `library.ts` motora hiç
-  bağımlı değildir, bu yüzden ölçümü temsil edemez. Bir kavramın metninde sayı
-  bulunması, okuyucunun yeniden hesaplayamayacağı bir iddiadır; `tests/library.test.ts`
-  bunu reddeder.
-
-Her kavram bir deneye bağlanır ve arayüzdeki "Bunu ölç" düğmesi o deneyi
-laboratuvarda açar. Yani açıklama, inanmakla değil çalıştırarak denetlenir.
-
-Kaynaklar birincildir (makale veya kurumsal belge) ve `https://` ile başlar.
-Bir katmanın kaynağı yoksa o katman kabul edilmez.
-
-## Sözleşme
-
-Her işlem `Tensor → Tensor` alır ve verir:
-
-```ts
-interface VisionEngine {
-  id: 'cpu' | 'webgpu'
-  describe: string
-  ops: readonly string[]
-  has(op: string): boolean
-  run(op, input: Tensor, params?): Promise<Tensor>
-}
-```
-
-Arayüz motor seçmez, motor kendini seçer (`selectEngine`). Seçim sonucu hem `engine` hem de
-kullanıcıya gösterilecek `report` ve `parity` döner.
-
-## Cevap anahtarı sözleşmesi
-
-`buildScene` görüntüyü ve sınıf haritasını **tek boyama geçişinde** üretir. Bu yüzden ikisi
-asla ayrışamaz. Nesneler ayrım ölçütüyle yerleştirilir: bir pikseli birden çok siluet sahiplenemez,
-aksi halde cevap anahtarı kendisiyle çelişir ve hiçbir dedektör dürüst puanlanamaz.
-
-`ground-truth` deneyi maskeyi doğrudan üreticiden alır ve 1.0000 IoU vermek zorundadır. Sapma,
-üreticide hata olduğunun kanıtıdır.
-
-## İki motor, iki doğruluk kuralı
-
-1. **Operatör kapsamı ilan edilir.** `GPU_CAPABLE` veri paralel işlemleri listeler; `canny`
-   (histerezis) ve `hough` (birikim) sıralı yapıdadır ve CPU'da kalır. Arayüz bunu isimleriyle
-   gösterir.
-2. **Fark ölçülür.** `selectEngine` sabit bir sonda sahnesi üzerinde her GPU işlemini CPU ile
-   karşılaştırır ve maksimum mutlak farkı raporlar. `f32`/`f64` yuvarlama farkı beklenir; büyük
-   fark bir hatanın işaretidir.
-
-## Yakalanmış iki hata
-
-Bunlar regresyon testleriyle korunur, çünkü ikisi de sessizdi:
-
-- **Gauss'ın ikinci geçişi sabit bir satır okuyordu.** Bulanıklık x ekseninde iki kez uygulanıyor,
-  y hiç dokunulmuyordu. GPU yolu her iki ekseni de doğru işlediği için iki motor *farklı filtreler*
-  hesaplıyor ve 0.16 sapıyordu.
-- **Sobel çekirdeği ayrılabilir 1B geçiş olarak ele alınıyordu.** Sobel satırı tek bir 1B vektör
-  değildir; sapma 0.51'di. Artık çekirdekler `ops.ts`'ten dışa aktarılır ve iki motor aynı
-  matrisi kullanır.
-
-## Ölçüm ve metin ayrımı
-
-Motor gerçekleri (adapter, üretici, mimari, CPU/GPU paritesi) **bir kez** ölçülür ve
-`EngineFacts` olarak saklanır. Bunları anlatan metin ise render anında `describeSelection(facts, lang)`
-ile türetilir. İkisi aynı `useEffect` içinde olsaydı, TR/EN arasında geçiş yapmak altı GPU
-gidiş-dönüşünü yeniden tetiklerdi — dil değişikliğinin asla hak etmediği bir ölçüm işi.
-Ölçüm değerleri iki dilde birebir aynıdır; yalnızca açıklama metni değişir.
-
-## Determinizm
-
-- Tüm rastgelelik `mulberry32` üzerinden tohumdan türetilir; `Math.random` hiçbir yerde yoktur.
-- Eğitim kümesi, değerlendirilen sahne dışında tutulur (`1000 + seed*17 + i*101`); ağ kendi
-  cevap anahtarını görmeden ölçülür.
-- Ağırlıklar yapılandırmaya göre önbelleklenir; iki çalıştırma aynı ağırlıkları üretir.
-- Eşikler görüntüden türetilir (Otsu), elle seçilmez.
+TR ve EN yüzeyleri birebir denktir. `src/content/i18n.ts` yalnızca öğretim yüzeyine ait
+sözcükleri taşır: ölçüm adı, motor probu veya eşik kontrolü gibi bir sözcük burada
+bulunamaz, çünkü cevap anahtarı olmadan hiçbirinin anlamı kalmaz.

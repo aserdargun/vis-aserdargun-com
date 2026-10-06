@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CONCEPTS, LAYERS, SOURCES, conceptsInLayer, sourceById } from '../src/content/library.ts';
-import { EXPERIMENTS, experimentById } from '../src/content/experiments.ts';
+import { LABORATORY_LAYERS, measureLink } from '../src/content/laboratory-link.ts';
 import type { Lang } from '../src/content/i18n.ts';
 
 const LANGS: readonly Lang[] = ['tr', 'en'];
@@ -104,10 +104,16 @@ describe('bilingual parity', () => {
   });
 });
 
-describe('concept to experiment cross-link', () => {
-  it('binds every concept to a real experiment', () => {
+describe('concept to laboratory cross-link', () => {
+  it('binds every concept to a layer the laboratory measures', () => {
     for (const concept of CONCEPTS) {
-      expect(() => experimentById(concept.experiment), `${concept.id} -> ${concept.experiment}`).not.toThrow();
+      expect(LABORATORY_LAYERS, `${concept.id} -> ${concept.measures}`).toContain(concept.measures);
+    }
+  });
+
+  it('sends the reader to the laboratory rather than staying on this page', () => {
+    for (const concept of CONCEPTS) {
+      expect(measureLink(concept.measures)).toBe(`https://cvl.aserdargun.com/#katman-${concept.measures}`);
     }
   });
 
@@ -119,8 +125,8 @@ describe('concept to experiment cross-link', () => {
 
   it('reaches the measurement surface of the laboratory from the knowledge bank', () => {
     // A knowledge bank that cannot be checked by running something is prose.
-    // At least every experiment that has a claim attached must be reachable.
-    const reached = new Set(CONCEPTS.map((c) => c.experiment));
+    // Most of the laboratory's layers must be reachable from a concept here.
+    const reached = new Set(CONCEPTS.map((c) => c.measures));
     expect(reached.size).toBeGreaterThanOrEqual(6);
   });
 
@@ -146,11 +152,14 @@ describe('measurement boundary', () => {
     expect(numbers, `numeric claim found in prose: ${numbers.join(', ')}`).toEqual([]);
   });
 
-  it('does not import the engine, so it cannot present a measurement', () => {
-    // Structural guarantee: the reference surface has no engine dependency at
-    // all, which is why it cannot drift into reporting numbers.
+  it('points every concept at the laboratory rather than measuring here', () => {
+    // Structural guarantee: this surface names the layers it explains and links
+    // out for every one of them. It holds no measurement of its own, which is
+    // why it cannot drift into reporting numbers.
     expect(SOURCES.length).toBeGreaterThan(0);
-    expect(EXPERIMENTS).toHaveLength(8);
+    for (const concept of CONCEPTS) {
+      expect(concept.measures, `${concept.id} names no measured layer`).toBeTruthy();
+    }
   });
 });
 

@@ -21,16 +21,18 @@ const required = [
   'staticwebapp.config.json',
   'robots.txt',
   'sitemap.xml',
-  'schemas/experiment-run.schema.json',
 ];
 for (const file of required) {
   if (!existsSync(path.join(dist, file))) fail(`dist/${file} is missing.`);
 }
 
 const release = JSON.parse(readFileSync(path.join(dist, 'release.json'), 'utf8'));
-if (release.application !== 'vis-vision-laboratory') fail('release.json names the wrong application.');
+if (release.application !== 'vis-knowledge-bank') fail('release.json names the wrong application.');
 if (release.scope?.synthetic !== true) fail('release.json must record the synthetic scope.');
 if (release.scope?.backend !== false) fail('release.json must record that there is no backend.');
+// VIS explains. A measurement engine in this build would be the laboratory
+// creeping back in, which is the drift this split exists to prevent.
+if (release.scope?.measurementEngine !== false) fail('release.json must record that there is no measurement engine.');
 if (!release.builtAt) fail('release.json has no build timestamp.');
 
 const html = readFileSync(path.join(dist, 'index.html'), 'utf8');
@@ -47,12 +49,9 @@ if (js.length === 0) fail('no hashed JavaScript bundle in dist/assets.');
 if (css.length === 0) fail('no hashed CSS bundle in dist/assets.');
 if (!js.some((f) => /-[A-Za-z0-9_-]{8,}\.js$/.test(f))) fail('JavaScript bundle is not content-hashed.');
 
-// The published schema must be valid JSON and describe the real contract.
-const schema = JSON.parse(readFileSync(path.join(dist, 'schemas', 'experiment-run.schema.json'), 'utf8'));
-if (!schema.required?.includes('iou')) fail('published schema does not require a measured iou.');
-if (!schema.properties?.experimentId?.enum?.includes('domain-gap')) {
-  fail('published schema is missing an experiment id.');
-}
+// VIS publishes no measurement schema: it has no operator to describe and no
+// answer key to compare against. The schema belongs to CVL.
+if (existsSync(path.join(dist, 'schemas'))) fail('VIS must not publish a measurement schema.')
 
 const swa = JSON.parse(readFileSync(path.join(dist, 'staticwebapp.config.json'), 'utf8'));
 if (!swa.globalHeaders?.['Content-Security-Policy']) fail('no Content-Security-Policy header.');
@@ -70,7 +69,7 @@ const walk = (dir) => {
     else if (/\.(js|html|css|json)$/.test(entry)) {
       const text = readFileSync(full, 'utf8');
       for (const needle of ['http://', 'https://api.', 'XMLHttpRequest', 'navigator.mediaDevices']) {
-        if (text.includes(needle) && !/aserdargun\.com|eng\.aserdargun|hex\.aserdargun/.test(text)) {
+        if (text.includes(needle) && !/aserdargun\.com|eng\.aserdargun|hex\.aserdargun|cvl\.aserdargun/.test(text)) {
           suspicious.push(`${path.relative(dist, full)} → ${needle}`);
         }
       }

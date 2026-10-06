@@ -1,63 +1,24 @@
 # VIS — Local validation record
 
-Recorded before the first deployment on macOS/arm64, Node.js 22.23.1, Playwright 1.63.0.
+Recorded after the split from CVL on macOS/arm64, Node.js 22.23.1, Playwright 1.63.0.
 
-## Environment probes
+## What changed and why it was verified
 
-WebGPU was measured before any code was written, because the hybrid runtime rests on it and
-`navigator.gpu` existing is not evidence that a kernel can run.
+VIS used to host a second copy of CVL's laboratory: its own engine, its own scene generator, its
+own answer key and its own metric table. Two copies of a measurement are one more thing that can
+drift from the answer key, and a reader could not tell which copy was reporting. The laboratory
+was removed rather than kept in sync.
 
-| Context | `navigator.gpu` | `requestAdapter()` | Note |
-|---|---|---|---|
-| Playwright headless, default flags | present | **null** | silent failure; no error thrown |
-| Playwright headless + `--enable-unsafe-webgpu --use-angle=metal` | present | `apple` / `metal-3` | required flags |
-| Playwright headed + same flags | present | `apple` / `metal-3` | |
-| Real Chrome 154 | present | `apple` / `metal-3` | |
+The split is only worth anything if it is enforced, so the checks below are structural rather
+than cosmetic:
 
-Two traps found by measuring rather than assuming:
-
-- `requestAdapter()` returns `null` **without throwing** while `navigator.gpu` is present. A
-  capability check on `!!navigator.gpu` therefore passes on a browser where no kernel can run.
-- `about:blank` is not a secure context, and `navigator.gpu` is `undefined` there. The first probe
-  run reported "no WebGPU" for that reason alone; all WebGPU assertions therefore run on
-  `http://127.0.0.1:<port>` or HTTPS.
-
-A real compute shader (64 work items, `data[i] = f32(i)²`) was dispatched and read back in
-headless Chromium: `[0,1,4,9,16,25,36,49]`, mathematically correct. The GPU path is therefore
-testable, not merely plausible.
-
-## Engine parity, measured on the same input
-
-`selectEngine` compares every GPU operator against the CPU path on scene seed 42 and reports the
-largest absolute difference. Two real bugs were found this way and fixed:
-
-| Operator | Before | After | Cause |
-|---|---:|---:|---|
-| `gaussian` | 1.58e-1 | 1.19e-7 | CPU second separable pass read a fixed row, so the blur ran along x twice and never touched y. The GPU path ran both axes correctly, so the two engines computed different filters. |
-| `sobel` | 5.12e-1 | 1.04e-7 | The GPU path treated a Sobel row as a separable 1D pass. A Sobel row is not one vector. The kernels are now shared from `ops.ts` and both engines convolve the same matrix. |
-| `convolve` | 0.00e+0 | 0.00e+0 | |
-| `threshold` | 0.00e+0 | 0.00e+0 | |
-| `dilate` / `erode` | 0.00e+0 | 0.00e+0 | New rank-filter kernels with `max` and `min` entry points. |
-
-Agreement tolerance is 1e-3 — a measurement tolerance for f32 against f64 accumulation, not a
-rounding allowance.
-
-## Scene generator corrections
-
-- Objects were placed almost entirely on top of each other, which makes the answer key ambiguous:
-  one silhouette hides another, and a detector cannot be scored against a key that disagrees with
-  itself. Placement now uses circular rejection sampling with a margin, and a test asserts that no
-  pixel is claimed by two silhouettes across five seeds.
-- The horizon was a hard contrast step and became the strongest gradient in the frame, so a
-  fraction-of-maximum Canny threshold landed above every object boundary: 23 detected pixels and a
-  0.0 border hit rate. The horizon is now blended across three rows and the Canny threshold scales
-  off a high percentile of the gradient distribution. Edge hit rate at 1px tolerance: **0.82**.
-
-## Canny hysteresis correction
-
-Hysteresis started from `like(strong)`, which allocates zeros rather than cloning, so the strong
-edges were discarded and the output was identically zero. Fixed with an explicit `clone`, and the
-regression is guarded by a test asserting a non-empty edge map.
+| Check | Where | What it proves |
+|---|---|---|
+| No engine directory | `release.json` records `measurementEngine: false` | VIS cannot present a measurement it did not compute |
+| No published schema | `scripts/verify-dist.mjs`, `scripts/verify-live.mjs` fail if `dist/schemas/` exists | The measurement contract belongs to CVL only |
+| No numbers in prose | `tests/library.test.ts` | A claim the reader cannot recompute is rejected |
+| No laboratory view | `tests/browser.spec.ts` asserts `view-laboratory` does not exist | The third surface is gone, not merely hidden |
+| Every concept links out | `tests/browser.spec.ts`, `tests/library.test.ts` | "Measure this" leaves for `cvl.aserdargun.com/#katman-*` |
 
 ## Knowledge bank sources, checked rather than recalled
 
@@ -71,8 +32,7 @@ were **rejected during this work** and replaced:
 | A Hough 1962 record pointing at a CERN ID | The CERN record is behind a bot check, and the DOI that resolved (`10.1364/AO.28.003479`) is a 1989 paper by different authors | Zhang 2000 camera calibration |
 
 `10.1007/BF00130422` was initially taken for Horn & Schunck; Crossref shows it is a muscle
-physiology paper. The lesson matches the rest of this file: the identity of a source has to be
-measured, not remembered.
+physiology paper. The identity of a source has to be measured, not remembered.
 
 The thirteen sources that remain are all publisher or standards addresses, and every one of
 them was confirmed to resolve:
@@ -91,20 +51,29 @@ Hough 1962, Nyquist 1928 and Sobel & Feldman 1968 are the classic citations for 
 none of them is reachable through a DOI that resolves. They are therefore **not cited**; the
 geometry layer rests on sources that can be opened.
 
+## Concept-to-laboratory mapping
+
+Sixteen concepts across seven layers each name the laboratory layer that measures them. The
+mapping is not one-to-one and was chosen by meaning, not by position: filtering concepts point
+at the separable-convolution measurement, hysteresis and gradient concepts at the edge layer,
+line-detection concepts at geometry. `tests/library.test.ts` asserts that every concept names a
+declared `LaboratoryLayer` and that the link is well-formed.
+
 ## Test inventory
 
 | Suite | Count | What it covers |
 |---|---:|---|
-| `npm test` (vitest) | 67 | determinism, no-overlap key, horizon contrast, Sobel kernels, 2D blur, Canny thresholds, component labelling, Hough peak, IoU and matching, flow recovery, CNN reproducibility and loss decrease, engine prose derived without re-measuring, every experiment runs, answer key is exactly 1.0, the family favicon (frame and lime accent, declared links, raster dimensions, and the raster pixels themselves: white corners, lime disc, dark ground, no alpha), plus 18 knowledge-bank invariants and 22 review invariants: card-to-concept binding, bilingual parity, the no-numbers rule, the SM-2 ladder, ease-factor floor, queue separation, and the rejection of corrupt stored progress — layer order and boundaries, source binding and reachability, TR/EN parity, concept-to-experiment cross-links, and the ban on numeric claims in reference prose |
-| `npm run test:ui` browser | 20 | all eight experiments render, answer key measures 1.0000, every experiment reports, learned path reports both sides and a difference, seed change re-measures, synthetic scope in both languages, language parity, CPU path selectable and measured, depth correlations reported, motion shift recovered, parent links, no console errors, plus the knowledge bank: seven sourced layers each stating its boundary, a primary source opening in a new tab, the explicit statement that its own numbers are not measurements, a concept cross-link that returns to the measuring experiment, and language switching inside the bank, plus the review surface: derived deck, reader-graded, progress surviving a reload, and a card cross-link into the measuring experiment |
-| `npm run test:ui` webgpu | 5 | adapter reachable or loud failure, real compute shader, engine selection reported, CPU/GPU parity under 1e-3, delegated operators named |
-| `scripts/verify-dist.mjs` | — | 9 required files, release manifest fields, canonical address, hashed bundles, security headers, no-store on the manifest, published schema, and a scan proving the artifact contains no external calls |
+| `npm test` (vitest) | 46 | 18 knowledge-bank invariants (layer order and boundaries, source binding and reachability, TR/EN parity, concept-to-laboratory links, the ban on numeric claims in prose) and 22 review invariants (card-to-concept binding, bilingual parity, the no-numbers rule on cards, the SM-2 ladder, ease-factor floor, queue separation, rejection of corrupt stored progress), plus the family favicon checks |
+| `npm run test:ui` browser | 12 | the knowledge bank is the landing surface and no laboratory is offered; seven sourced layers each stating its boundary; a primary source opening in a new tab; the explicit statement that its own numbers are not measurements; a concept linking out to the laboratory layer that measures it; every knowledge layer linking out; language switching in both directions; parent links including the laboratory; no console errors; and the review surface: derived deck, reader-graded, progress surviving a reload, a card linking out instead of measuring, bilingual |
+
+The measurement tests — determinism, engine parity, GPU probing — were removed with the engine
+they exercised. They live in CVL now, where the answer key that gives them meaning does.
 
 ## Result
 
 ```
 npm run lint      clean
-npm run build     dist verified, 300 kB js / 10 kB css
-npm test          67 passed
-npm run test:ui   25 passed (20 browser + 5 webgpu)
+npm run build     dist verified, 256 kB js / 10 kB css
+npm test          46 passed
+npm run test:ui   12 passed
 ```
