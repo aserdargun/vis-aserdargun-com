@@ -121,7 +121,7 @@ describe('favicon family', () => {
     );
     expect(svg).toMatch(/<text[^>]*x="160"[^>]*y="296"[^>]*text-anchor="middle"[^>]*fill="#c8ff36"/);
     expect(svg).toContain('>VIS</text>');
-    expect(svg).toContain('aria-label="VIS — Vision Laboratory"');
+    expect(svg).toContain('aria-label="VIS — Vision Knowledge Bank"');
   });
 
   it('index.html declares svg, 32px png and apple-touch icons', () => {
@@ -182,7 +182,7 @@ describe('favicon family', () => {
     // It keeps its own retired blue because nothing about it is current.
     expect(
       validator(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-label="VIS — Vision Laboratory"><rect width="64" height="64" rx="14" fill="#0b0f14"/><rect x="6" y="6" width="52" height="52" rx="10" fill="none" stroke="#1f6feb" stroke-width="2"/><path d="M14 46L32 18L50 46" fill="none" stroke="#e6edf3" stroke-width="2.5"/><text x="32" y="58" text-anchor="middle" fill="#1f6feb">VIS</text></svg>',
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-label="VIS — Vision Knowledge Bank"><rect width="64" height="64" rx="14" fill="#0b0f14"/><rect x="6" y="6" width="52" height="52" rx="10" fill="none" stroke="#1f6feb" stroke-width="2"/><path d="M14 46L32 18L50 46" fill="none" stroke="#e6edf3" stroke-width="2.5"/><text x="32" y="58" text-anchor="middle" fill="#1f6feb">VIS</text></svg>',
       ),
     ).toBe(false);
     // Family frame and lime, but a foreign label
@@ -194,7 +194,7 @@ describe('favicon family', () => {
     // Family frame, but the accent reverted to VIS's retired private blue
     expect(
       validator(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" aria-label="VIS — Vision Laboratory"><rect width="320" height="320" rx="64" fill="#121310"/><circle cx="160" cy="142" r="108" fill="#1f6feb"/><g stroke="#0c0d0a"><path d="M1 1"/></g><text x="160" y="296" text-anchor="middle" fill="#1f6feb">VIS</text></svg>',
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" aria-label="VIS — Vision Knowledge Bank"><rect width="320" height="320" rx="64" fill="#121310"/><circle cx="160" cy="142" r="108" fill="#1f6feb"/><g stroke="#0c0d0a"><path d="M1 1"/></g><text x="160" y="296" text-anchor="middle" fill="#1f6feb">VIS</text></svg>',
       ),
     ).toBe(false);
     expect(validator(load('public/favicon.svg'))).toBe(true);
