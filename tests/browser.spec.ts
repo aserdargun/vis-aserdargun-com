@@ -56,6 +56,28 @@ test('every knowledge layer sends the reader to the laboratory', async ({ page }
   }
 });
 
+test('every layer answers the deep link the laboratory sends', async ({ page }) => {
+  // The other half of the boundary contract. The laboratory links here as
+  // `#katman-<layer>`; this surface is built by script, so the fragment cannot
+  // resolve on its own. Without a real id and an explicit scroll, a reader who
+  // follows a "read this in VIS" link lands at the top of the page and never sees
+  // the layer they asked for. Both halves are asserted, because either one alone
+  // would leave the declared link quietly broken.
+  for (const layer of ['signal', 'filtering', 'edges', 'regions', 'geometry', 'learning', 'motion']) {
+    await page.goto(`/#katman-${layer}`);
+    const anchor = page.locator(`#katman-${layer}`);
+    await expect(anchor).toBeVisible({ timeout: 20000 });
+    await expect(anchor).toHaveAttribute('id', `katman-${layer}`);
+    // The section must be the one that reached the top of the viewport, otherwise
+    // the link resolved to a name but not to the reading.
+    const onScreen = await anchor.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      return box.top >= -8 && box.top < window.innerHeight;
+    });
+    expect(onScreen, `#katman-${layer} did not scroll into view`).toBe(true);
+  }
+});
+
 test('the knowledge bank switches language in both directions', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('kb-concept-hysteresis')).toContainText('Histerez', { timeout: 20000 });

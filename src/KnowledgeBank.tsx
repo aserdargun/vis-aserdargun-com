@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { CONCEPTS, LAYERS, SOURCES, conceptsInLayer, sourceById } from './content/library.ts';
 import type { LayerId } from './content/library.ts';
 import { measureLink } from './content/laboratory-link.ts';
@@ -39,6 +40,27 @@ function SourceList({ ids, lang }: { ids: readonly string[]; lang: Lang }) {
 }
 
 export function KnowledgeBank({ lang }: { lang: Lang }) {
+  // A deep link from the laboratory arrives as `#katman-<layer>`. This surface is
+  // rendered by script, so the browser resolves the fragment before these sections
+  // exist and would silently leave the reader at the top of the page. Honouring the
+  // fragment after render is what turns the declared link into a working one.
+  useEffect(() => {
+    const reveal = () => {
+      const id = window.location.hash.slice(1);
+      if (!id.startsWith('katman-')) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      target.scrollIntoView();
+      // A keyboard or screen-reader reader must land on the layer, not only see it
+      // scrolled into place, so the heading takes focus with the scroll.
+      target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    };
+    reveal();
+    window.addEventListener('hashchange', reveal);
+    return () => window.removeEventListener('hashchange', reveal);
+  }, [lang]);
+
   return (
     <div className="kb" data-testid="knowledge-bank">
       <section className="panel kb-intro">
@@ -54,7 +76,16 @@ export function KnowledgeBank({ lang }: { lang: Lang }) {
         const concepts = conceptsInLayer(layer.id);
         const builtOn = layer.dependsOn.map((id) => LAYERS.find((l) => l.id === id)?.title[lang] ?? id);
         return (
-          <section className="panel kb-layer" key={layer.id} data-testid={`kb-layer-${layer.id}`}>
+          <section
+            className="panel kb-layer"
+            key={layer.id}
+            // The reciprocal half of the boundary contract: every CVL layer links
+            // here as `vis.aserdargun.com/#katman-<layer>`, so each layer must
+            // actually carry that id. Without it the link lands on the top of the
+            // page and the reader is never shown the reading they asked for.
+            id={`katman-${layer.id}`}
+            data-testid={`kb-layer-${layer.id}`}
+          >
             <header className="kb-layer-head">
               <span className="kb-layer-index">{String(layer.order).padStart(2, '0')}</span>
               <h2>{layer.title[lang]}</h2>
